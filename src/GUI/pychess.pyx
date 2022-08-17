@@ -34,7 +34,7 @@ cdef extern from "../game/utils.h":
         unsigned long long * getBitboard(bint color, Piece piece)
         unsigned long long * getBitboard(bint color, int piece)
 
-cdef extern from "../game/moves.cpp":
+cdef extern from "../game/moves.h":
     cdef cppclass Move:
         Move(int, int, Piece) except +
         Move(string, Piece) except +
@@ -50,6 +50,7 @@ cdef extern from "../game/game.cpp":
         Bitboards bitboards
         vector[Move] allMoves()
         void makeMove(Move move)
+        void loadFen(string fen)
 
 cdef class pyChess:
     cdef Chess *cobj
@@ -61,6 +62,9 @@ cdef class pyChess:
             return self.cobj.color
         def __set__(self, bint color):
             self.cobj.color = color
+
+    def loadFen(self, fen):
+        self.cobj.loadFen(fen.encode('utf-8'))
 
     def pieceMoves(self, piece_x, piece_y):
         move_list = []

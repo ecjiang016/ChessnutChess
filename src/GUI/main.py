@@ -198,8 +198,11 @@ def single_move(game):
         pygame.display.flip()
         clock.tick(60)
 
-def main():
+def main(fen=""):
     game = Chess()
+
+    if fen:
+        game.loadFen(fen)
 
     screen = pygame.display.set_mode((WINDOW_SIZE, WINDOW_SIZE))
     clock = pygame.time.Clock()
@@ -207,6 +210,7 @@ def main():
     selected_piece = 0, -1, -1
     game_board = game.createBoard()
     move_list = []
+    drop_pos = None
 
     while True:
         piece, x, y = get_square_under_mouse(game_board)
@@ -258,4 +262,4 @@ def main():
         #    return
 
 if __name__ == '__main__':
-    main()
+    main("")

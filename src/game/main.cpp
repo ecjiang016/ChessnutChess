@@ -2,9 +2,20 @@
 
 int main() {
     Bitboards bitboards;
-    FEN(starting_pos, bitboards);
-    print_single_bitboard(bitboards.whitePawn);
-    print_single_bitboard(bswap_64(bitboards.whitePawn));
+    FEN("8/ppp2p1r/2N2P2/8/8/2R2R1R/7P/7n", bitboards);
+
+    //std::vector<Move> move;
+
+    struct Move moves [256];
+    struct Move *move = moves;
+
+    for (int i = 0; i < 10; i++) {
+        Move a(12, 23, Pawn);
+        *move++ = a;
+    }
+    std::cout << moves[9].UCI() <<std::endl;
+    std::cout << moves[10].UCI() <<std::endl;
+    
     //FEN("rnbqkbnr/1p3p1p/8/2p1p3/2PP2p1/p4P2/PP2P1PP/RNBQKBNR", bitboards);
 
     /*
@@ -15,15 +26,5 @@ int main() {
     for(Move i : moves) 
         std::cout << i.UCI() << std::endl;
     */
-
-    Chess game;
-    std::string str_move;
-    
-    while (1) {
-        print_bitboards(game.bitboards);
-        std::cin >> str_move;
-        Move player_move(str_move, Pawn);
-        game.makeMove(player_move);
-    }
     
 }

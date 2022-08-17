@@ -7,13 +7,13 @@
 
 #include <stdlib.h>
 #define bswap_64(x) _byteswap_uint64(x)
-
+/*
 #elif defined(__APPLE__)
 
 // Mac OS X / Darwin features
 #include <libkern/OSByteOrder.h>
 #define bswap_64(x) OSSwapInt64(x)
-
+*/
 #elif defined(__sun) || defined(sun)
 
 #include <sys/byteorder.h>
@@ -45,9 +45,17 @@
 
 typedef unsigned long long U64;
 #define C64(constantU64) constantU64##ULL
-#define check_bit(var, bit_num) (var & (C64(1) << bit_num)) //0 if bit at bit_num is 0, > 0 otherwise
+//#define check_bit(var, bit_num) (var & (C64(1) << bit_num))
+
+/**
+ * Returns false if bit at bit_num is 0, othewise returns true
+*/
+inline bool check_bit(U64 bitboard, int bit_num) {
+    return (bitboard & (C64(1) << bit_num)) != 0;
+}
 
 enum Piece {
+    None = 0,
     Pawn = 1,
     Knight = 2,
     Bishop = 3,
@@ -73,7 +81,6 @@ struct Bitboards {
         whiteRook, blackRook, whiteQueen, blackQueen, whiteKing, blackKing;
 
     U64 occupancy, occupancyWhite, occupancyBlack;
-    U64 attackWhite, attackBlack;
 
     U64 en_passant;
     
@@ -91,8 +98,23 @@ struct Bitboards {
         whiteKing = C64(0);
         blackKing = C64(0);
         updateOccupancy();
-        attackWhite = C64(0);
-        attackBlack = C64(0);
+        en_passant = C64(0);
+    }
+
+    void clearBitboards() {
+        whitePawn = C64(0);
+        blackPawn = C64(0);
+        whiteKnight = C64(0);
+        blackKnight = C64(0);
+        whiteBishop = C64(0);
+        blackBishop = C64(0);
+        whiteRook = C64(0);
+        blackRook = C64(0);
+        whiteQueen = C64(0);
+        blackQueen = C64(0);
+        whiteKing = C64(0);
+        blackKing = C64(0);
+        updateOccupancy();
         en_passant = C64(0);
     }
 
@@ -171,6 +193,8 @@ struct Bitboards {
                     return &blackQueen;
                 case 6:
                     return &blackKing;
+                default:
+                    return &blackKing;
             }
         }
 
@@ -206,7 +230,7 @@ void print_bitboards(Bitboards& bitboards) {
             std::cout << "| ";
 
             for (int i = 0; i <= 12; i++) {
-                if check_bit(bitboard_array[i], ((row*8) + column)) {
+                if (check_bit(bitboard_array[i], ((row*8) + column))) {
                     piece_at_pos = i;
                     break;
                 }
@@ -276,7 +300,7 @@ void print_single_bitboard(U64 bitboard) {
         for (int column = 0; column < 8; column++) {
             std::cout << "| ";
 
-            if check_bit(bitboard, ((row*8) + column)) {
+            if (check_bit(bitboard, ((row*8) + column))) {
                 std::cout << "1";
             } else {
                 std::cout << ".";
