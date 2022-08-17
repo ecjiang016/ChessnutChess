@@ -115,7 +115,7 @@ int search(int depth, Chess game) {
 
 int main() {
     Chess game;
-    game.loadFen("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1");
+    //game.loadFen("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1");
     //Move fm("d2d3", Pawn);
     //game.makeMove(fm);
 
