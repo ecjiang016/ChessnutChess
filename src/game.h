@@ -31,5 +31,8 @@ void Chess::makeMove(Move move) {
 
 template<Color color>
 std::vector<Move> Chess::getMoves() {
+	std::vector<Move> legal_moves;
+	legal_moves.reserve(48);
 	
+
 }
