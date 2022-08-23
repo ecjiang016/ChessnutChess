@@ -55,6 +55,12 @@ inline bool check_bit(Bitboard bitboard, int bit_num) {
     return (bitboard & (Bitboard(1) << bit_num)) != 0;
 }
 
+inline int pop_count(Bitboard bitboard) {
+    int count = 0;
+    while (bitboard &= -bitboard) count++;
+    return count++;
+}
+
 //Returns a bitboard with the single bit at pos as 1
 inline Bitboard get_single_bitboard(uint8_t pos) {
     return Bitboard(1) << pos;
@@ -72,134 +78,7 @@ const std::string index_to_string[64] = {
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"
 };
 
-struct Bitboards {
-    uint64_t whitePawn, blackPawn, whiteKnight, blackKnight, whiteBishop, blackBishop,
-        whiteRook, blackRook, whiteQueen, blackQueen, whiteKing, blackKing;
-
-    uint64_t occupancy, occupancyWhite, occupancyBlack;
-
-    uint64_t en_passant;
-    
-    Bitboards() {
-        whitePawn = uint64_t(0);
-        blackPawn = uint64_t(0);
-        whiteKnight = uint64_t(0);
-        blackKnight = uint64_t(0);
-        whiteBishop = uint64_t(0);
-        blackBishop = uint64_t(0);
-        whiteRook = uint64_t(0);
-        blackRook = uint64_t(0);
-        whiteQueen = uint64_t(0);
-        blackQueen = uint64_t(0);
-        whiteKing = uint64_t(0);
-        blackKing = uint64_t(0);
-        updateOccupancy();
-        en_passant = uint64_t(0);
-    }
-
-    void clearBitboards() {
-        whitePawn = uint64_t(0);
-        blackPawn = uint64_t(0);
-        whiteKnight = uint64_t(0);
-        blackKnight = uint64_t(0);
-        whiteBishop = uint64_t(0);
-        blackBishop = uint64_t(0);
-        whiteRook = uint64_t(0);
-        blackRook = uint64_t(0);
-        whiteQueen = uint64_t(0);
-        blackQueen = uint64_t(0);
-        whiteKing = uint64_t(0);
-        blackKing = uint64_t(0);
-        updateOccupancy();
-        en_passant = uint64_t(0);
-    }
-
-    void updateOccupancy() {
-        occupancyWhite = whitePawn | whiteKnight | whiteBishop | whiteRook | whiteQueen | whiteKing;
-        occupancyBlack = blackPawn | blackKnight | blackBishop | blackRook | blackQueen | blackKing;
-        occupancy = occupancyWhite | occupancyBlack;
-    }
-
-    uint64_t* getBitboard(bool color, Piece piece) {
-        if (color) {
-            switch (piece) {
-                case 1:
-                    return &whitePawn;
-                case 2:
-                    return &whiteKnight;
-                case 3:
-                    return &whiteBishop;
-                case 4:
-                    return &whiteRook;
-                case 5:
-                    return &whiteQueen;
-                case 6:
-                    return &whiteKing;
-                default:
-                    return &whiteKing;
-            }
-        } else {
-            switch (piece) {
-                case 1:
-                    return &blackPawn;
-                case 2:
-                    return &blackKnight;
-                case 3:
-                    return &blackBishop;
-                case 4:
-                    return &blackRook;
-                case 5:
-                    return &blackQueen;
-                case 6:
-                    return &blackKing;
-            }
-        }
-
-    }
-
-    uint64_t* getBitboard(bool color, int piece) {
-        if (color) {
-            switch (piece) {
-                case 1:
-                    return &whitePawn;
-                case 2:
-                    return &whiteKnight;
-                case 3:
-                    return &whiteBishop;
-                case 4:
-                    return &whiteRook;
-                case 5:
-                    return &whiteQueen;
-                case 6:
-                    return &whiteKing;
-                default:
-                    return &whiteKing;
-            }
-        } else {
-            switch (piece) {
-                case 1:
-                    return &blackPawn;
-                case 2:
-                    return &blackKnight;
-                case 3:
-                    return &blackBishop;
-                case 4:
-                    return &blackRook;
-                case 5:
-                    return &blackQueen;
-                case 6:
-                    return &blackKing;
-                default:
-                    return &blackKing;
-            }
-        }
-
-    }
-
-};
-
-void print_bitboards(Bitboards& bitboards);
-void print_single_bitboard(uint64_t bitboard);
+void print_bitboard(Bitboard bitboard);
 
 const int index64[64] = {
     0, 47,  1, 56, 48, 27,  2, 60,
