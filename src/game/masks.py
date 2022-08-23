@@ -22,7 +22,7 @@ def convert_pos(pos):
 def compute_rook_masks():
     directions = [-1, 1, -8, 8]
     with open(FILE, "a") as f:
-        f.write("const U64 rook_masks_horizontal[64] = {\n")
+        f.write("const Bitboard rook_masks_horizontal[64] = {\n")
 
         for pypos in range(64):
             pos = convert_pos(pypos)
@@ -44,7 +44,7 @@ def compute_rook_masks():
 
         f.write("};\n\n")
 
-        f.write("const U64 rook_masks_vertical[64] = {\n")
+        f.write("const Bitboard rook_masks_vertical[64] = {\n")
         for pypos in range(64):
             pos = convert_pos(pypos)
             x = pos % 8
@@ -69,7 +69,7 @@ def compute_rook_masks():
 def compute_bishop_masks():
     directions = [-9, 9, -7, 7]
     with open(FILE, "a") as f:
-        f.write("const U64 bishop_masks_diag1[64] = {\n")
+        f.write("const Bitboard bishop_masks_diag1[64] = {\n")
 
         for pypos in range(64):
             pos = convert_pos(pypos)
@@ -91,7 +91,7 @@ def compute_bishop_masks():
 
         f.write("};\n\n")
 
-        f.write("const U64 bishop_masks_diag2[64] = {\n")
+        f.write("const Bitboard bishop_masks_diag2[64] = {\n")
         for pypos in range(64):
             pos = convert_pos(pypos)
             x = pos % 8
@@ -116,7 +116,7 @@ def compute_bishop_masks():
 def compute_knight_masks():
     directions = [-10, -17, -15, -6, 10, 17, 15, 6]
     with open(FILE, "a") as f:
-        f.write("const U64 knight_masks[64] = {\n")
+        f.write("const Bitboard knight_masks[64] = {\n")
 
         for pypos in range(64):
             pos = convert_pos(pypos)
@@ -142,7 +142,7 @@ def compute_knight_masks():
 def compute_king_masks():
     directions = [-1, -9, -8, -7, 1, 9, 8, 7, -2, 2]
     with open(FILE, "a") as f:
-        f.write("const U64 king_masks[64] = {\n")
+        f.write("const Bitboard king_masks[64] = {\n")
 
         for pypos in range(64):
             pos = convert_pos(pypos)
@@ -169,7 +169,7 @@ def compute_all_direction_masks():
     """All 8 directions (Queen move)"""
     directions = [-1, -9, -8, -7, 1, 9, 8, 7, -2, 2]
     with open(FILE, "a") as f:
-        f.write("const U64 all_direction_masks[64] = {\n")
+        f.write("const Bitboard all_direction_masks[64] = {\n")
 
         for pypos in range(64):
             pos = convert_pos(pypos)
@@ -197,7 +197,7 @@ def compute_directional_masks():
     """Create rays for the 8 directions independently"""
     directions = [-1, -9, -8, -7, 1, 9, 8, 7, -2, 2]
     with open(FILE, "a") as f:
-        f.write("const U64 directional_masks[64][8] = {\n")
+        f.write("const Bitboard directional_masks[64][8] = {\n")
 
         for pypos in range(64):
             pos = convert_pos(pypos)
@@ -234,7 +234,7 @@ def compute_connecting_masks():
     """
 
     with open(FILE, "a") as f:
-        f.write("const U64 connecting_masks[64][64] = {\n")
+        f.write("const Bitboard connecting_masks[64][64] = {\n")
 
         for pypos1 in range(64):
             pos1 = convert_pos(pypos1)
@@ -309,7 +309,7 @@ def compute_connecting_full_masks():
     """
 
     with open(FILE, "a") as f:
-        f.write("const U64 connecting_full_masks[64][64] = {\n")
+        f.write("const Bitboard connecting_full_masks[64][64] = {\n")
 
         for pypos1 in range(64):
             pos1 = convert_pos(pypos1)
@@ -400,7 +400,8 @@ if __name__ == '__main__':
         f.write("//It's done this way solely because my Python is better\n")
         f.write("//And also I already had most the code for this implemented and working in Python\n\n")
         f.write("#pragma once \n")
-        f.write("typedef unsigned long long U64;\n\n")
+        f.write("#include <stdint.h>")
+        f.write("typedef uint64_t Bitboard;\n\n")
         f.close()
 
     compute_rook_masks()

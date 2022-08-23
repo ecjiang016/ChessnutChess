@@ -4,10 +4,11 @@
 //It's done this way solely because my Python is better
 //And also I already had most the code for this implemented and working in Python
 
-#pragma once 
-typedef unsigned long long U64;
+#pragma once
+#include <stdint.h>
+typedef uint64_t Bitboard;
 
-const U64 rook_masks_horizontal[64] = {
+const Bitboard rook_masks_horizontal[64] = {
     0xfe,
     0xfd,
     0xfb,
@@ -74,7 +75,7 @@ const U64 rook_masks_horizontal[64] = {
     0x7f00000000000000
 };
 
-const U64 rook_masks_vertical[64] = {
+const Bitboard rook_masks_vertical[64] = {
     0x101010101010100,
     0x202020202020200,
     0x404040404040400,
@@ -141,7 +142,7 @@ const U64 rook_masks_vertical[64] = {
     0x80808080808080
 };
 
-const U64 bishop_masks_diag1[64] = {
+const Bitboard bishop_masks_diag1[64] = {
     0x0,
     0x100,
     0x10200,
@@ -208,7 +209,7 @@ const U64 bishop_masks_diag1[64] = {
     0x0
 };
 
-const U64 bishop_masks_diag2[64] = {
+const Bitboard bishop_masks_diag2[64] = {
     0x8040201008040200,
     0x80402010080400,
     0x804020100800,
@@ -275,7 +276,7 @@ const U64 bishop_masks_diag2[64] = {
     0x40201008040201
 };
 
-const U64 knight_masks[64] = {
+const Bitboard knight_masks[64] = {
     0x20400,
     0x50800,
     0xa1100,
@@ -342,7 +343,7 @@ const U64 knight_masks[64] = {
     0x20400000000000
 };
 
-const U64 king_masks[64] = {
+const Bitboard king_masks[64] = {
     0x302,
     0x705,
     0xe0a,
@@ -409,7 +410,7 @@ const U64 king_masks[64] = {
     0x40c0000000000000
 };
 
-const U64 all_direction_masks[64] = {
+const Bitboard all_direction_masks[64] = {
     0x81412111090503fe,
     0x2824222120a07fd,
     0x404844424150efb,
@@ -476,7 +477,7 @@ const U64 all_direction_masks[64] = {
     0x7fc0a09088848281
 };
 
-const U64 directional_masks[64][8] = {
+const Bitboard directional_masks[64][8] = {
     {
     0x0,
     0x0,
@@ -1119,7 +1120,7 @@ const U64 directional_masks[64][8] = {
     }
 };
 
-const U64 connecting_masks[64][64] = {
+const Bitboard connecting_masks[64][64] = {
     {
     0x0,     0x0,     0x2,     0x6,     0xe,     0x1e,     0x3e,     0x7e, 
     0x0,     0x0,     0x0,     0x0,     0x0,     0x0,     0x0,     0x0, 
@@ -1762,7 +1763,7 @@ const U64 connecting_masks[64][64] = {
     }
 };
 
-const U64 connecting_full_masks[64][64] = {
+const Bitboard connecting_full_masks[64][64] = {
     {
     0x0,     0xfe,     0xfe,     0xfe,     0xfe,     0xfe,     0xfe,     0xfe, 
     0x101010101010100,     0x8040201008040200,     0x0,     0x0,     0x0,     0x0,     0x0,     0x0, 
