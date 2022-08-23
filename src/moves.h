@@ -1,7 +1,44 @@
 #pragma once
 #include "bits.h"
-#include "piece.h"
 #include "masks.h"
+
+enum Color : uint8_t {
+    WHITE = 0, BLACK = 1
+};
+
+Color operator~(Color color) {
+    return Color(color ^ Color(1));
+}
+
+enum PieceType : uint8_t {
+    NoPiece = 0,
+    Pawn = 1,
+    Knight = 2,
+    Bishop = 3,
+    Rook = 4,
+    Queen = 5,
+    King = 6
+};
+
+enum Piece : uint8_t {
+    NoPiece = 0,
+    WhitePawn = 1,
+    WhiteKnight = 2,
+    WhiteBishop = 3,
+    WhiteRook = 4,
+    WhiteQueen = 5,
+    WhiteKing = 6,
+    BlackPawn = 9,
+    BlackKnight = 10,
+    BlackBishop = 11,
+    BlackRook = 12,
+    BlackQueen = 13,
+    BlackKing = 14
+};
+
+constexpr Piece makePiece(Color color, PieceType piece) {
+    return Piece((color << 3) | piece);
+}
 
 enum Flag : uint16_t {
     QUIET = 0b1000000000000,
@@ -47,41 +84,43 @@ struct Move {
 
 };
 
-inline U64 sliding_moves(U64 occupancy, U64 mask, U64 piece_square_bitboard) {
+inline Bitboard sliding_moves(Bitboard occupancy, Bitboard mask, Bitboard piece_square_bitboard) {
     return (((occupancy & mask) - piece_square_bitboard) ^
         bswap_64(bswap_64(occupancy & mask) - bswap_64(piece_square_bitboard))) & mask;
 }
 
 
-template<PieceType = Pawn>
-uint64_t getAttacks(uint64_t pos_bb, uint64_t occupancy) {
-    return 1;
+template<Color color>
+inline Bitboard pawn_attacks(Bitboard pawns) {
+    if constexpr (color == WHITE) {
+        return pawns << 
+    }
 }
 
-template<>
-uint64_t getAttacks<Knight>(uint64_t pos_bb, uint64_t occupancy) {
+template<PieceType = Knight>
+inline Bitboard get_attacks(Bitboard pos_bb, Bitboard occupancy) {
     return knight_masks[bitScanForward(pos_bb)];
 }
 
 template<>
-uint64_t getAttacks<Bishop>(uint64_t pos_bb, uint64_t occupancy) {
+inline Bitboard get_attacks<Bishop>(Bitboard pos_bb, Bitboard occupancy) {
     return sliding_moves(occupancy, bishop_masks_diag1[bitScanForward(pos_bb)], pos_bb) | 
            sliding_moves(occupancy, bishop_masks_diag2[bitScanForward(pos_bb)], pos_bb);
 }
 
 template<>
-uint64_t getAttacks<Rook>(uint64_t pos_bb, uint64_t occupancy) {
+inline Bitboard get_attacks<Rook>(Bitboard pos_bb, Bitboard occupancy) {
     return sliding_moves(occupancy, rook_masks_horizontal[bitScanForward(pos_bb)], pos_bb) | 
            sliding_moves(occupancy, rook_masks_vertical[bitScanForward(pos_bb)],   pos_bb);
 }
 
 template<>
-uint64_t getAttacks<Queen>(uint64_t pos_bb, uint64_t occupancy) {
-    return getAttacks<Bishop>(pos_bb, occupancy) | getAttacks<Rook>(pos_bb, occupancy);
+inline Bitboard get_attacks<Queen>(Bitboard pos_bb, Bitboard occupancy) {
+    return get_attacks<Bishop>(pos_bb, occupancy) | get_attacks<Rook>(pos_bb, occupancy);
 }
 
 template<>
-uint64_t getAttacks<King>(uint64_t pos_bb, uint64_t occupancy) {
+inline Bitboard get_attacks<King>(Bitboard pos_bb, Bitboard occupancy) {
     return king_masks[bitScanForward(pos_bb)];
 }
 
