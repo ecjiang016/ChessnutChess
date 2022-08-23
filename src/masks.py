@@ -400,8 +400,18 @@ if __name__ == '__main__':
         f.write("//It's done this way solely because my Python is better\n")
         f.write("//And also I already had most the code for this implemented and working in Python\n\n")
         f.write("#pragma once \n")
-        f.write("#include <stdint.h>")
-        f.write("typedef uint64_t Bitboard;\n\n")
+        f.write("#include <stdint.h>\n")
+        f.write("typedef uint64_t Bitboard;\n")
+        f.write("""
+const Bitboard TOP_ROW = 0xFF00000000000000;
+const Bitboard BOTTOM_ROW = 0xFF;
+const Bitboard RIGHT_COLUMN = 0x8080808080808080;
+const Bitboard LEFT_COLUMN = 0x101010101010101;
+const Bitboard TOP_TWO = 0xFFFF000000000000;
+const Bitboard BOTTOM_TWO = 0xFFFF;
+const Bitboard RIGHT_TWO = 0xC0C0C0C0C0C0C0C0;
+const Bitboard LEFT_TWO= 0x303030303030303;\n\n"""
+        )
         f.close()
 
     compute_rook_masks()
