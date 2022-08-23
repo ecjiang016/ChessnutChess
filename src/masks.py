@@ -1,6 +1,6 @@
 import numpy as np
 
-FILE = "./src/game/masks.h"
+FILE = "./src/masks.h"
 
 def convert_to_hex_bitboard(board):
     #decimal = sum([digit*(2**power) for power, digit in enumerate(np.flipud(board.reshape(8, 8)).ravel())])
