@@ -228,7 +228,7 @@ def compute_directional_masks():
 
 def compute_connecting_masks():
     """
-    Connects two positions on the board from the first to the second, not including the first position.
+    Connects two positions on the board from the first to the second, not including endpoints.
 
     If the two positions cannot be connected, it will return all zeros.
     """
@@ -252,30 +252,30 @@ def compute_connecting_masks():
                     pass
 
                 elif x1 == x2: #Vertical mask
-                    for s in range(1, abs(y2 - y1)):
+                    for s in range(1, abs(y2 - y1) - 1):
                         board[s * np.sign(y2 - y1) * 8 + pos1] = 1
 
                 elif y1 == y2: #Horizontal mask
-                    for s in range(1, abs(x2 - x1)):
+                    for s in range(1, abs(x2 - x1) - 1):
                         board[s * np.sign(x2 - x1) + pos1] = 1
 
                 elif (y1-y2)/(x2-x1) == 1: #Diagonal, positive slope
                     if (y1 - y2) >= 1: #Up right
-                        for s in range(1, abs(y1 - y2)):
+                        for s in range(1, abs(y1 - y2) - 1):
                             board[s * -7 + pos1] = 1
 
                     else: #Down left
-                        for s in range(1, abs(y1 - y2)):
+                        for s in range(1, abs(y1 - y2) - 1):
                             board[s * 7 + pos1] = 1
 
 
                 elif (y1-y2)/(x2-x1) == -1: #Diagonal, negative slope
                     if (y1 - y2) >= 1: #Up left
-                        for s in range(1, abs(y1 - y2)):
+                        for s in range(1, abs(y1 - y2) - 1):
                             board[s * -9 + pos1] = 1
 
                     else: #Down right
-                        for s in range(1, abs(y1 - y2)):
+                        for s in range(1, abs(y1 - y2) - 1):
                             board[s * 9 + pos1] = 1
                 
                 else: #Fail safe idk why there really isn't a point cause there's no conceivable way of it ever getting here and the board not being full of zeros but since I wrote it already why not keep it for absolutely no reason but to make myself feel a little better and worse at the same time since it shouldn't break but then also it shouldn't even get to the breaking point in the first place. Well now the only reason why this exists is to host this abusdly long comment that's kinda funny at the time that I'm writing this but might prove to be a little bothersome later.
