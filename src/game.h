@@ -85,7 +85,8 @@ std::vector<Move> Chess::getMoves() const {
 	add_moves<CAPTURE>(king_square, bb & enemy, legal_moves);
 
 	//Get checkers
-	checkers |= get_attacks<Knight>(get_bitboard(King, color)) & get_bitboard(King, color); //Look for knights from the king position
+	checkers |= get_attacks<Knight>(get_bitboard(King, color)) & get_bitboard(Knight, ~color); //Look for knights from the king position
+	checkers |= pawn_attacks<color>(get_bitboard(King, color)) & get_bitboard(Pawn, ~color);
 
 	//The potential checkers are the enemy pieces that are in line with the kiing
 	Bitboard pot_checkers = get_attacks<Queen>(get_bitboard(King, color)) & (get_bitboard(Bishop, ~color) | get_bitboard(Rook, ~color) | get_bitboard(Queen, ~color));
