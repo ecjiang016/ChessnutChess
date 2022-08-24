@@ -63,6 +63,7 @@ std::vector<Move> Chess::getMoves() const {
 	
 	//Check for pins and checkers
 	Bitboard checkers = 0;
+	Bitboard pinned = 0;
 	Bitboard danger = 0;
 
 	danger |= pawn_attacks<~color>(get_bitboard(Pawn, ~color));
@@ -87,9 +88,17 @@ std::vector<Move> Chess::getMoves() const {
 	checkers |= get_attacks<Knight>(get_bitboard(King, color)) & get_bitboard(King, color); //Look for knights from the king position
 
 	//The potential checkers are the enemy pieces that are in line with the kiing
-	Bitboard pot_checkers = get_attacks<Queen>(get_bitboard(King, color)) & (get_bitboard(Bishop, ~color) | get_bitboard(Rook, ~color) | get_bitboard(Queen, ~color))
+	Bitboard pot_checkers = get_attacks<Queen>(get_bitboard(King, color)) & (get_bitboard(Bishop, ~color) | get_bitboard(Rook, ~color) | get_bitboard(Queen, ~color));
 	while (pot_checkers) {
-		connecting_masks
+		uint8_t pieces_between = connecting_masks[king_square][bitScanForward(pot_checkers)] & all;
+		switch (pop_count(pieces_between)) {
+			case 0:
+				checkers |= pot_checkers & -pot_checkers;
+				break;
+			case 1:
+				pinned |= pieces_between;
+				break;
+		}
 	}
 
 	switch (pop_count(checkers)) {
