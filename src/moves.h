@@ -1,6 +1,7 @@
 #pragma once
 #include "bits.h"
 #include "masks.h"
+#include <vector>
 
 enum Color : uint8_t {
     WHITE = 0, BLACK = 1
@@ -36,7 +37,7 @@ enum Piece : uint8_t {
     BlackKing = 14
 };
 
-constexpr Piece makePiece(Color color, PieceType piece) {
+constexpr Piece makePiece(PieceType piece, Color color) {
     return Piece((color << 3) | piece);
 }
 
@@ -93,7 +94,9 @@ inline Bitboard sliding_moves(Bitboard occupancy, Bitboard mask, Bitboard piece_
 template<Color color>
 inline Bitboard pawn_attacks(Bitboard pawns) {
     if constexpr (color == WHITE) {
-        return pawns << 
+        return ((pawns << 7) & LEFT_COLUMN) | ((pawns << 9) & RIGHT_COLUMN);
+    } else {
+        return ((pawns >> 9) & LEFT_COLUMN) | ((pawns >> 7) & RIGHT_COLUMN);
     }
 }
 
@@ -124,3 +127,9 @@ inline Bitboard get_attacks<King>(Bitboard pos_bb, Bitboard occupancy) {
     return king_masks[bitScanForward(pos_bb)];
 }
 
+template<Flag flag>
+inline void add_moves(uint8_t piece_pos, Bitboard move_bitboard, std::vector<Move> &moves) {
+    if (move_bitboard) do {
+        moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), flag));
+    } while (move_bitboard &= move_bitboard - 1);
+}
