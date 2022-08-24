@@ -96,7 +96,7 @@ std::vector<Move> Chess::getMoves() const {
 				checkers |= pot_checkers & -pot_checkers;
 				break;
 			case 1:
-				pinned |= pieces_between;
+				pinned |= pieces_between & friendly;
 				break;
 		}
 	}
