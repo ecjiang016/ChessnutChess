@@ -66,6 +66,9 @@ std::vector<Move> Chess::getMoves() const {
 	Bitboard pinned = 0;
 	Bitboard danger = 0;
 
+    //Masks out illegal moves due to check
+    Bitboard move_mask;
+
 	danger |= pawn_attacks<~color>(get_bitboard(Pawn, ~color));
 	danger |= get_attacks<King>(get_bitboard(King, ~color));
 
@@ -88,7 +91,7 @@ std::vector<Move> Chess::getMoves() const {
 	checkers |= get_attacks<Knight>(get_bitboard(King, color)) & get_bitboard(Knight, ~color); //Look for knights from the king position
 	checkers |= pawn_attacks<color>(get_bitboard(King, color)) & get_bitboard(Pawn, ~color);
 
-	//The potential checkers are the enemy pieces that are in line with the kiing
+	//The potential checkers are the enemy pieces that are in line with the king
 	Bitboard pot_checkers = get_attacks<Queen>(get_bitboard(King, color)) & (get_bitboard(Bishop, ~color) | get_bitboard(Rook, ~color) | get_bitboard(Queen, ~color));
 	while (pot_checkers) {
 		uint8_t pieces_between = connecting_masks[king_square][bitScanForward(pot_checkers)] & all;
@@ -136,13 +139,28 @@ std::vector<Move> Chess::getMoves() const {
                     }
                     
                     return legal_moves; //Don't need to generate any other moves
-                    
+
+                default:
+                    move_mask = connecting_masks[king_square][bitScanForward(checkers)] | checkers;
+                    break;
             }
+
+            break;
 
 		//King is not in check
 		case 0:
-
+            move_mask = 0; //No moves need to be filtered because of check
+            break;
 
 	}
+
+    Bitboard moves; //Temp bitboard to store moves
+
+    //Adding knight moves
+    bb = get_bitboard(Knight, color);
+    while (bb) {
+        moves = get_attacks<Knight>(bb, all)
+        bb &= bb - 1;
+    }
 
 }
