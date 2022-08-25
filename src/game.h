@@ -66,8 +66,9 @@ std::vector<Move> Chess::getMoves() const {
 	Bitboard pinned = 0;
 	Bitboard danger = 0;
 
-    //Masks out illegal moves due to check
-    Bitboard move_mask;
+    //For masking moves to either being a quiet or a capture move
+    Bitboard quiet_mask;
+    Bitboard capture_mask;
 
 	danger |= pawn_attacks<~color>(get_bitboard(Pawn, ~color));
 	danger |= get_attacks<King>(bitScanForward(get_bitboard(King, ~color)));
@@ -140,9 +141,8 @@ std::vector<Move> Chess::getMoves() const {
 
                     bb = ((pawn_attacks<~color>(checkers)   & get_bitboard(Pawn,   color)) |
                         (get_attacks<Knight>(checker_idx, all) & get_bitboard(Knight, color)) |
-                        (get_attacks<Bishop>(checker_idx, all) & get_bitboard(Bishop, color)) |
-                        (get_attacks<Rook>  (checker_idx, all) & get_bitboard(Rook,   color)) |
-                        (get_attacks<Queen> (checker_idx, all) & get_bitboard(Queen,  color))) & ~pinned;
+                        (get_attacks<Bishop>(checker_idx, all) & (get_bitboard(Bishop, color) | get_bitboard(Queen, color))) |
+                        (get_attacks<Rook>  (checker_idx, all) & (get_bitboard(Rook,   color) | get_bitboard(Queen, color)))) & ~pinned;
 
                     //Add capture moves to the vector
                     while (bb) {
@@ -153,7 +153,8 @@ std::vector<Move> Chess::getMoves() const {
                     return legal_moves; //Don't need to generate any other moves
 
                 default:
-                    move_mask = connecting_masks[king_square][checker_idx] | checkers;
+                    quiet_mask = connecting_masks[king_square][checker_idx]; //Only quiet moves are moving in between the checker and the king
+                    capture_mask = checkers; //Only capture move is to capture the checker
                     break;
             }
 
@@ -161,18 +162,45 @@ std::vector<Move> Chess::getMoves() const {
 
 		//King is not in check
 		case 0:
-            move_mask = 0; //No moves need to be filtered because of check
+            quiet_mask = ~all; //Quiet moves are on empty spaces
+            capture_mask = enemy;
             break;
 
 	}
 
     Bitboard moves; //Temp bitboard to store moves
+    int pos; //Temp int for storing positions
 
     //Adding knight moves
-    bb = get_bitboard(Knight, color);
+    bb = get_bitboard(Knight, color) & ~pinned;
     while (bb) {
-        moves = get_attacks<Knight>(bitScanForward(bb), all);
+        pos = bitScanForward(bb);
+        moves = get_attacks<Knight>(pos, all);
+        add_moves<QUIET>(pos, moves & quiet_mask, legal_moves);
+        add_moves<CAPTURE>(pos, moves & capture_mask, legal_moves);
         bb &= bb - 1;
     }
+
+    //Adding bishop + diagonal queen moves
+    bb = (get_bitboard(Bishop, color) | get_bitboard(Queen, color)) & ~pinned;
+    while (bb) {
+        pos = bitScanForward(bb);
+        moves = get_attacks<Bishop>(pos, all);
+        add_moves<QUIET>(pos, moves & quiet_mask, legal_moves);
+        add_moves<CAPTURE>(pos, moves & capture_mask, legal_moves);
+        bb &= bb - 1;
+    }
+    
+    //Adding rook + not diagonal queen moves
+    bb = (get_bitboard(Rook, color) | get_bitboard(Queen, color)) & ~pinned;
+    while (bb) {
+        pos = bitScanForward(bb);
+        moves = get_attacks<Rook>(pos, all);
+        add_moves<QUIET>(pos, moves & quiet_mask, legal_moves);
+        add_moves<CAPTURE>(pos, moves & capture_mask, legal_moves);
+        bb &= bb - 1;
+    }
+
+    return legal_moves;
 
 }
