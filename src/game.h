@@ -53,7 +53,7 @@ std::vector<Move> Chess::getMoves() const {
 	std::vector<Move> legal_moves;
 	legal_moves.reserve(48);
 
-	Bitboard bb; // Temp bitboard used for whatever
+	Bitboard bb; //Temp bitboard used for whatever
 
 	const Bitboard friendly = all_bitboards<color>();
 	const Bitboard enemy = all_bitboards<~color>();
@@ -100,6 +100,8 @@ std::vector<Move> Chess::getMoves() const {
 				pinned |= pieces_between & friendly;
 				break;
 		}
+
+        pot_checkers &= pot_checkers - 1; //Remove ls1b
 	}
 
 	switch (pop_count(checkers)) {
@@ -110,7 +112,32 @@ std::vector<Move> Chess::getMoves() const {
 
 		//Single check
 		case 1:
+            switch(mailbox[bitScanForward(checkers)]) {
+                case makePiece(Pawn, ~color):
+                    ;
+                    //The checking pawn can be taken by en passant
+                    //No break to continue to knight case
+                case makePiece(Knight, ~color):
+                    //If there's a single check from a pawn or a knight, the only moves are captures of that piece
+                    //Shouldn't need to include king as it should have been handled earlier
+                    //Looks for pieces that can capture by generating attacks from the checker square and looking for intersections with friendly pieces
+                    //Essentially generating the capture in "reverse"
 
+                    bb = ((pawn_attacks<~color>(checkers)   & get_bitboard(Pawn,   color)) |
+                        (get_attacks<Knight>(checkers, all) & get_bitboard(Knight, color)) |
+                        (get_attacks<Bishop>(checkers, all) & get_bitboard(Bishop, color)) |
+                        (get_attacks<Rook>  (checkers, all) & get_bitboard(Rook,   color)) |
+                        (get_attacks<Queen> (checkers, all) & get_bitboard(Queen,  color))) & ~pinned;
+
+                    //Add capture moves to the vector
+                    while (bb) {
+                        legal_moves.push_back(Move(bitScanForward(bb), bitScanForward(checkers), QUIET)); // Will always only need to add one move per piece
+                        bb &= bb - 1; //Reset ls1b
+                    }
+                    
+                    return legal_moves; //Don't need to generate any other moves
+                    
+            }
 
 		//King is not in check
 		case 0:
