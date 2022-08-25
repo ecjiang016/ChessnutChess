@@ -129,7 +129,8 @@ inline Bitboard get_attacks<King>(Bitboard pos_bb, Bitboard occupancy) {
 
 template<Flag flag>
 inline void add_moves(uint8_t piece_pos, Bitboard move_bitboard, std::vector<Move> &moves) {
-    if (move_bitboard) do {
+    while (move_bitboard) {
         moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), flag));
-    } while (move_bitboard &= move_bitboard - 1);
+        move_bitboard &= move_bitboard - 1;
+    }
 }
