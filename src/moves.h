@@ -101,30 +101,30 @@ inline Bitboard pawn_attacks(Bitboard pawns) {
 }
 
 template<PieceType = Knight>
-inline Bitboard get_attacks(Bitboard pos_bb, Bitboard occupancy) {
-    return knight_masks[bitScanForward(pos_bb)];
+inline Bitboard get_attacks(int pos_idx, Bitboard occupancy) {
+    return knight_masks[pos_idx];
 }
 
 template<>
-inline Bitboard get_attacks<Bishop>(Bitboard pos_bb, Bitboard occupancy) {
-    return sliding_moves(occupancy, bishop_masks_diag1[bitScanForward(pos_bb)], pos_bb) | 
-           sliding_moves(occupancy, bishop_masks_diag2[bitScanForward(pos_bb)], pos_bb);
+inline Bitboard get_attacks<Bishop>(int pos_idx, Bitboard occupancy) {
+    return sliding_moves(occupancy, bishop_masks_diag1[pos_idx], get_single_bitboard(pos_idx)) | 
+           sliding_moves(occupancy, bishop_masks_diag2[pos_idx], get_single_bitboard(pos_idx));
 }
 
 template<>
-inline Bitboard get_attacks<Rook>(Bitboard pos_bb, Bitboard occupancy) {
-    return sliding_moves(occupancy, rook_masks_horizontal[bitScanForward(pos_bb)], pos_bb) | 
-           sliding_moves(occupancy, rook_masks_vertical[bitScanForward(pos_bb)],   pos_bb);
+inline Bitboard get_attacks<Rook>(int pos_idx, Bitboard occupancy) {
+    return sliding_moves(occupancy, rook_masks_horizontal[pos_idx], get_single_bitboard(pos_idx)) | 
+           sliding_moves(occupancy, rook_masks_vertical[pos_idx],   get_single_bitboard(pos_idx));
 }
 
 template<>
-inline Bitboard get_attacks<Queen>(Bitboard pos_bb, Bitboard occupancy) {
-    return get_attacks<Bishop>(pos_bb, occupancy) | get_attacks<Rook>(pos_bb, occupancy);
+inline Bitboard get_attacks<Queen>(int pos_idx, Bitboard occupancy) {
+    return get_attacks<Bishop>(pos_idx, occupancy) | get_attacks<Rook>(pos_idx, occupancy);
 }
 
 template<>
-inline Bitboard get_attacks<King>(Bitboard pos_bb, Bitboard occupancy) {
-    return king_masks[bitScanForward(pos_bb)];
+inline Bitboard get_attacks<King>(int pos_idx, Bitboard occupancy) {
+    return king_masks[pos_idx];
 }
 
 template<Flag flag>

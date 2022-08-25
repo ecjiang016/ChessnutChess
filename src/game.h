@@ -59,7 +59,7 @@ std::vector<Move> Chess::getMoves() const {
 	const Bitboard enemy = all_bitboards<~color>();
 	const Bitboard all = friendly | enemy;
 	
-	const uint8_t king_square = bitScanForward(get_bitboard(King, color));
+	const int king_square = bitScanForward(get_bitboard(King, color));
 	
 	//Check for pins and checkers
 	Bitboard checkers = 0;
@@ -70,29 +70,40 @@ std::vector<Move> Chess::getMoves() const {
     Bitboard move_mask;
 
 	danger |= pawn_attacks<~color>(get_bitboard(Pawn, ~color));
-	danger |= get_attacks<King>(get_bitboard(King, ~color));
+	danger |= get_attacks<King>(bitScanForward(get_bitboard(King, ~color)));
 
 	//Diagonal attackers
 	bb = get_bitboard(Bishop, ~color) | get_bitboard(Queen, ~color);
-	while (bb &= bb-1) danger |= get_attacks<Bishop>(bb, all ^ get_bitboard(King, color)); // xor with King so get xray attacks
+	while (bb) {
+        danger |= get_attacks<Bishop>(bitScanForward(bb), all ^ get_bitboard(King, color)); // xor with King so get xray attacks
+        bb &= bb - 1;
+    }
+
 	//Straight attackers 
 	bb = get_bitboard(Rook, ~color) | get_bitboard(Queen, ~color);
-	while (bb &= bb-1) danger |= get_attacks<Rook>(bb, all ^ get_bitboard(King, color)); // xor with King so get xray attacks
+	while (bb) {
+        danger |= get_attacks<Rook>(bitScanForward(bb), all ^ get_bitboard(King, color)); // xor with King so get xray attacks
+        bb &= bb - 1;
+    }
+
 	//Knights
 	bb = get_bitboard(Knight, ~color);
-	while (bb &= bb-1) danger |= get_attacks<Knight>(knight_attackers, all);
+	while (bb) {
+        danger |= get_attacks<Knight>(bitScanForward(bb), all);
+        bb &= bb - 1;
+    }
 
 	//Friendly king moves
-	bb = get_attacks<King>(get_bitboard(King, color), all) & ~(danger | friendly); //Can't go in check or in spaces where friendly pieces are at
+	bb = get_attacks<King>(king_square, all) & ~(danger | friendly); //Can't go in check or in spaces where friendly pieces are at
 	add_moves<QUIET>(king_square, bb & ~enemy, legal_moves);
 	add_moves<CAPTURE>(king_square, bb & enemy, legal_moves);
 
 	//Get checkers
-	checkers |= get_attacks<Knight>(get_bitboard(King, color)) & get_bitboard(Knight, ~color); //Look for knights from the king position
-	checkers |= pawn_attacks<color>(get_bitboard(King, color)) & get_bitboard(Pawn, ~color);
+	checkers |= get_attacks<Knight>(king_square) & get_bitboard(Knight, ~color); //Look for knights from the king position
+	checkers |= pawn_attacks<color>(king_square) & get_bitboard(Pawn, ~color);
 
 	//The potential checkers are the enemy pieces that are in line with the king
-	Bitboard pot_checkers = get_attacks<Queen>(get_bitboard(King, color)) & (get_bitboard(Bishop, ~color) | get_bitboard(Rook, ~color) | get_bitboard(Queen, ~color));
+	Bitboard pot_checkers = all_direction_masks[king_square] & (get_bitboard(Bishop, ~color) | get_bitboard(Rook, ~color) | get_bitboard(Queen, ~color));
 	while (pot_checkers) {
 		uint8_t pieces_between = connecting_masks[king_square][bitScanForward(pot_checkers)] & all;
 		switch (pop_count(pieces_between)) {
@@ -115,7 +126,8 @@ std::vector<Move> Chess::getMoves() const {
 
 		//Single check
 		case 1:
-            switch(mailbox[bitScanForward(checkers)]) {
+            int checker_idx = bitScanForward(checkers);
+            switch(mailbox[checker_idx]) {
                 case makePiece(Pawn, ~color):
                     ;
                     //The checking pawn can be taken by en passant
@@ -127,21 +139,21 @@ std::vector<Move> Chess::getMoves() const {
                     //Essentially generating the capture in "reverse"
 
                     bb = ((pawn_attacks<~color>(checkers)   & get_bitboard(Pawn,   color)) |
-                        (get_attacks<Knight>(checkers, all) & get_bitboard(Knight, color)) |
-                        (get_attacks<Bishop>(checkers, all) & get_bitboard(Bishop, color)) |
-                        (get_attacks<Rook>  (checkers, all) & get_bitboard(Rook,   color)) |
-                        (get_attacks<Queen> (checkers, all) & get_bitboard(Queen,  color))) & ~pinned;
+                        (get_attacks<Knight>(checker_idx, all) & get_bitboard(Knight, color)) |
+                        (get_attacks<Bishop>(checker_idx, all) & get_bitboard(Bishop, color)) |
+                        (get_attacks<Rook>  (checker_idx, all) & get_bitboard(Rook,   color)) |
+                        (get_attacks<Queen> (checker_idx, all) & get_bitboard(Queen,  color))) & ~pinned;
 
                     //Add capture moves to the vector
                     while (bb) {
-                        legal_moves.push_back(Move(bitScanForward(bb), bitScanForward(checkers), QUIET)); // Will always only need to add one move per piece
+                        legal_moves.push_back(Move(bitScanForward(bb), checker_idx, QUIET)); // Will always only need to add one move per piece
                         bb &= bb - 1; //Reset ls1b
                     }
                     
                     return legal_moves; //Don't need to generate any other moves
 
                 default:
-                    move_mask = connecting_masks[king_square][bitScanForward(checkers)] | checkers;
+                    move_mask = connecting_masks[king_square][checker_idx] | checkers;
                     break;
             }
 
@@ -159,7 +171,7 @@ std::vector<Move> Chess::getMoves() const {
     //Adding knight moves
     bb = get_bitboard(Knight, color);
     while (bb) {
-        moves = get_attacks<Knight>(bb, all)
+        moves = get_attacks<Knight>(bitScanForward(bb), all);
         bb &= bb - 1;
     }
 
