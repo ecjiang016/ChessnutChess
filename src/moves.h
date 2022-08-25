@@ -7,7 +7,7 @@ enum Color : uint8_t {
     WHITE = 0, BLACK = 1
 };
 
-Color operator~(Color color) {
+constexpr Color operator~(Color color) {
     return Color(color ^ Color(1));
 }
 

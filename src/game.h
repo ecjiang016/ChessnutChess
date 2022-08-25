@@ -9,7 +9,7 @@ class Chess {
 	Bitboard bitboards[15];
 
 	template<Color color> inline Bitboard all_bitboards() const;
-	template<PieceType piece, Color color> inline Bitboard get_bitboard() const;
+	constexpr inline Bitboard get_bitboard(PieceType piece, Color color) const;
 
   public:
   	template<Color color> std::vector<Move> getMoves() const;
@@ -29,7 +29,7 @@ inline Bitboard Chess::all_bitboards() const {
 	} 
 }
 
-template<PieceType piece, Color color> inline Bitboard Chess::get_bitboard() const {
+constexpr inline Bitboard Chess::get_bitboard(PieceType piece, Color color) const {
 	return bitboards[makePiece(piece, color)];
 }
 
@@ -71,7 +71,7 @@ std::vector<Move> Chess::getMoves() const {
     Bitboard capture_mask;
 
 	danger |= pawn_attacks<~color>(get_bitboard(Pawn, ~color));
-	danger |= get_attacks<King>(bitScanForward(get_bitboard(King, ~color)));
+	danger |= get_attacks<King>(bitScanForward(get_bitboard(King, ~color)), all);
 
 	//Diagonal attackers
 	bb = get_bitboard(Bishop, ~color) | get_bitboard(Queen, ~color);
@@ -100,7 +100,7 @@ std::vector<Move> Chess::getMoves() const {
 	add_moves<CAPTURE>(king_square, bb & enemy, legal_moves);
 
 	//Get checkers
-	checkers |= get_attacks<Knight>(king_square) & get_bitboard(Knight, ~color); //Look for knights from the king position
+	checkers |= get_attacks<Knight>(king_square, all) & get_bitboard(Knight, ~color); //Look for knights from the king position
 	checkers |= pawn_attacks<color>(king_square) & get_bitboard(Pawn, ~color);
 
 	//The potential checkers are the enemy pieces that are in line with the king
