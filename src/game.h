@@ -171,6 +171,48 @@ std::vector<Move> Chess::getMoves() const {
     Bitboard moves; //Temp bitboard to store moves
     int pos; //Temp int for storing positions
 
+	//Generate pawn moves
+	if constexpr (color == WHITE) {
+		bb = ((bitboards[WhitePawn] & ~pinned) << 8) & ~all; //Single pawn push
+		moves = ((bb & Bitboard(0xFF00)) << 8) & ~all; //Double pawn push generated off of single pawn push
+		
+		while (bb) {
+			pos = bitScanForward(bb);
+			legal_moves.push_back(Move(pos - 8, pos));
+			bb &= bb - 1;
+		}
+
+		while (moves) {
+			pos = bitScanForward(moves);
+			legal_moves.push_back(Move(pos - 16, pos));
+			moves &= moves - 1;
+		}
+
+	} else {
+		bb = ((bitboards[BlackPawn] & ~pinned) >> 8) & ~all; //Single pawn push
+		moves = ((bb & Bitboard(0xFF000000000000)) >> 8) & ~all; //Double pawn push generated off of single pawn push
+
+		while (bb) {
+			pos = bitScanForward(bb);
+			legal_moves.push_back(Move(pos + 8, pos));
+			bb &= bb - 1;
+		}
+
+		while (moves) {
+			pos = bitScanForward(moves);
+			legal_moves.push_back(Move(pos + 16, pos));
+			moves &= moves - 1;
+		}
+
+	}
+
+	//Add pawn attacks
+	bb = get_bitboard(Pawn, color) & ~pinned;
+    while (bb) {
+        add_moves<CAPTURE>(bitScanForward(bb), pawn_attacks<color>(get_single_bitboard(bb)) & get_bitboard(Pawn, ~color) & capture_mask, legal_moves);
+        bb &= bb - 1;
+    }
+
     //Adding knight moves
     bb = get_bitboard(Knight, color) & ~pinned;
     while (bb) {
@@ -190,6 +232,16 @@ std::vector<Move> Chess::getMoves() const {
         add_moves<CAPTURE>(pos, moves & capture_mask, legal_moves);
         bb &= bb - 1;
     }
+
+	//Pinned bishop + diagonal queen moves
+	bb = (get_bitboard(Bishop, color) | get_bitboard(Queen, color)) & pinned;
+	while (bb) {
+		pos = bitScanForward(bb);
+        moves = get_attacks<Bishop>(pos, all) & connecting_masks[king_square][pos];
+        add_moves<QUIET>(pos, moves & quiet_mask, legal_moves);
+        add_moves<CAPTURE>(pos, moves & capture_mask, legal_moves);
+        bb &= bb - 1;
+	}
     
     //Adding rook + not diagonal queen moves
     bb = (get_bitboard(Rook, color) | get_bitboard(Queen, color)) & ~pinned;
