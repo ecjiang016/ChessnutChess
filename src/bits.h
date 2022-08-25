@@ -64,8 +64,11 @@ inline bool check_bit(Bitboard bitboard, int bit_num) {
 
 inline int pop_count(Bitboard bitboard) {
     int count = 0;
-    while (bitboard &= -bitboard) count++;
-    return count++;
+    while (bitboard) {
+        count++;
+        bitboard &= bitboard - 1; //Remove ls1b
+    }
+    return count;
 }
 
 //Returns a bitboard with the single bit at pos as 1
