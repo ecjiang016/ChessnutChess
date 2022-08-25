@@ -22,7 +22,6 @@ enum PieceType : uint8_t {
 };
 
 enum Piece : uint8_t {
-    NoPiece = 0,
     WhitePawn = 1,
     WhiteKnight = 2,
     WhiteBishop = 3,
@@ -58,19 +57,19 @@ struct Move {
         move = 0;
     }
 
-    Move(uint8_t old_coord, uint8_t new_coord) {
-        move = (old_coord << 6) | new_coord;
+    Move(uint8_t from, uint8_t to) {
+        move = (from << 6) | to;
     }
 
-    Move(int old_coord, int new_coord, Flag flag) {
-        move = (flag << 12) | (old_coord << 6) | new_coord;
+    Move(int from, int to, Flag flag) {
+        move = (flag << 12) | (from << 6) | to;
     }
 
-    inline uint8_t old_coord() {
+    inline uint8_t from() {
         return (move >> 6) & 0b111111;
     }
 
-    inline uint8_t new_coord() {
+    inline uint8_t to() {
         return move & 0b111111;
     }
 
@@ -80,7 +79,7 @@ struct Move {
 
     inline std::string UCI() {
         //Still needs logic for special moves
-        return index_to_string[old_coord()] + index_to_string[new_coord()];
+        return index_to_string[from()] + index_to_string[to()];
     }
 
 };
