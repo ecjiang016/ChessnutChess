@@ -12,7 +12,6 @@ constexpr Color operator~(Color color) {
 }
 
 enum PieceType : uint8_t {
-    NoPiece = 0,
     Pawn = 1,
     Knight = 2,
     Bishop = 3,
@@ -22,6 +21,7 @@ enum PieceType : uint8_t {
 };
 
 enum Piece : uint8_t {
+    NoPiece = 0,
     WhitePawn = 1,
     WhiteKnight = 2,
     WhiteBishop = 3,
