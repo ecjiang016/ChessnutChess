@@ -15,6 +15,8 @@ class Chess {
   	template<Color color> std::vector<Move> getMoves() const;
     template<Color color> void makeMove(Move move);
 
+	std::vector<Piece> getMailbox() const;
+
 };
 
 //Returns all the bitboards of a certain color
@@ -27,10 +29,6 @@ inline Bitboard Chess::all_bitboards() const {
 		return bitboards[BlackPawn] | bitboards[BlackKnight] | bitboards[BlackBishop] |
 			   bitboards[BlackRook] | bitboards[BlackQueen]  | bitboards[BlackKing];
 	} 
-}
-
-constexpr inline Bitboard Chess::get_bitboard(PieceType piece, Color color) const {
-	return bitboards[makePiece(piece, color)];
 }
 
 template<Color color>
@@ -54,6 +52,8 @@ std::vector<Move> Chess::getMoves() const {
 	legal_moves.reserve(48);
 
 	Bitboard bb; //Temp bitboard used for whatever
+	Bitboard moves; //Temp bitboard to store moves
+    int pos; //Temp int for storing positions
 
 	const Bitboard friendly = all_bitboards<color>();
 	const Bitboard enemy = all_bitboards<~color>();
@@ -106,7 +106,7 @@ std::vector<Move> Chess::getMoves() const {
 	//The potential checkers are the enemy pieces that are in line with the king
 	Bitboard pot_checkers = all_direction_masks[king_square] & (get_bitboard(Bishop, ~color) | get_bitboard(Rook, ~color) | get_bitboard(Queen, ~color));
 	while (pot_checkers) {
-		uint8_t pieces_between = connecting_masks[king_square][bitScanForward(pot_checkers)] & all;
+		Bitboard pieces_between = connecting_masks[king_square][bitScanForward(pot_checkers)] & all;
 		switch (pop_count(pieces_between)) {
 			case 0:
 				checkers |= pot_checkers & -pot_checkers;
@@ -127,8 +127,8 @@ std::vector<Move> Chess::getMoves() const {
 
 		//Single check
 		case 1:
-            int checker_idx = bitScanForward(checkers);
-            switch(mailbox[checker_idx]) {
+            pos = bitScanForward(checkers); //Index of the checker
+            switch(mailbox[pos]) {
                 case makePiece(Pawn, ~color):
                     ;
                     //The checking pawn can be taken by en passant
@@ -140,20 +140,20 @@ std::vector<Move> Chess::getMoves() const {
                     //Essentially generating the capture in "reverse"
 
                     bb = ((pawn_attacks<~color>(checkers)   & get_bitboard(Pawn,   color)) |
-                        (get_attacks<Knight>(checker_idx, all) & get_bitboard(Knight, color)) |
-                        (get_attacks<Bishop>(checker_idx, all) & (get_bitboard(Bishop, color) | get_bitboard(Queen, color))) |
-                        (get_attacks<Rook>  (checker_idx, all) & (get_bitboard(Rook,   color) | get_bitboard(Queen, color)))) & ~pinned;
+                        (get_attacks<Knight>(pos, all) & get_bitboard(Knight, color)) |
+                        (get_attacks<Bishop>(pos, all) & (get_bitboard(Bishop, color) | get_bitboard(Queen, color))) |
+                        (get_attacks<Rook>  (pos, all) & (get_bitboard(Rook,   color) | get_bitboard(Queen, color)))) & ~pinned;
 
                     //Add capture moves to the vector
                     while (bb) {
-                        legal_moves.push_back(Move(bitScanForward(bb), checker_idx, QUIET)); // Will always only need to add one move per piece
+                        legal_moves.push_back(Move(bitScanForward(bb), pos, QUIET)); // Will always only need to add one move per piece
                         bb &= bb - 1; //Reset ls1b
                     }
                     
                     return legal_moves; //Don't need to generate any other moves
 
                 default:
-                    quiet_mask = connecting_masks[king_square][checker_idx]; //Only quiet moves are moving in between the checker and the king
+                    quiet_mask = connecting_masks[king_square][pos]; //Only quiet moves are moving in between the checker and the king
                     capture_mask = checkers; //Only capture move is to capture the checker
                     break;
             }
@@ -167,9 +167,6 @@ std::vector<Move> Chess::getMoves() const {
             break;
 
 	}
-
-    Bitboard moves; //Temp bitboard to store moves
-    int pos; //Temp int for storing positions
 
 	//Generate pawn moves
 	if constexpr (color == WHITE) {
@@ -209,7 +206,7 @@ std::vector<Move> Chess::getMoves() const {
 	//Add pawn attacks
 	bb = get_bitboard(Pawn, color) & ~pinned;
     while (bb) {
-        add_moves<CAPTURE>(bitScanForward(bb), pawn_attacks<color>(get_single_bitboard(bb)) & get_bitboard(Pawn, ~color) & capture_mask, legal_moves);
+        add_moves<CAPTURE>(bitScanForward(bb), pawn_attacks<color>(bb & -bb) & get_bitboard(Pawn, ~color) & capture_mask, legal_moves);
         bb &= bb - 1;
     }
 
