@@ -7,7 +7,7 @@ struct History {
 	//Stores information that the chess game needs to move or undo moves
 	uint8_t en_passant_square; //Index of the pawn that can be en passant captured
 	PieceType capture; //Captured piece for undoing moves
-}
+};
 
 class Chess {
   private:
@@ -50,7 +50,7 @@ void Chess::makeMove(Move move) {
 
 		case CAPTURE:
 			bitboards[mailbox[move.from()]] ^= get_single_bitboard(move.from()) | get_single_bitboard(move.to()); // Update piece position on bitboard
-			bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to()) //Remove captured piece from its bitboard
+			bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to()); //Remove captured piece from its bitboard
 			mailbox[move.to()] = mailbox[move.from()]; // Update new mailbox position
 			mailbox[move.from()] = NoPiece; // Remove the mailbox piece from it's old position
 			break;
