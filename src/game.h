@@ -21,7 +21,7 @@ class Chess {
   	template<Color color> std::vector<Move> getMoves() const;
     template<Color color> void makeMove(Move move);
 
-	std::vector<Piece> getMailbox() const;
+	inline std::vector<Piece> getMailbox() const;
 
 };
 
