@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-std::string starting_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+const std::string starting_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
 
 struct History {
 	//Stores information that the chess game needs to move or undo moves
@@ -25,7 +25,7 @@ class Chess {
     template<Color color> void makeMove(Move move);
 
 	inline std::vector<Piece> getMailbox() const;
-	constexpr Color setFen(char* fen); //Returns the color since this class doesn't actually keep track of the color
+	void setFen(std::string fen);
 
 };
 

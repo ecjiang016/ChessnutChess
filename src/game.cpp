@@ -8,11 +8,10 @@ inline std::vector<Piece> Chess::getMailbox() const {
     return std::vector<Piece>(mailbox, mailbox + 64);
 }
 
-constexpr Color Chess::setFen(char* fen) {
+void Chess::setFen(std::string fen) {
     int set_space = 56;
 
-    int i = 0;
-    while (fen[i] != ' ') {
+    for (int i = 0; i < fen.size(); i++) {
         switch (fen[i]) {
             case 'P':
                 this->bitboards[WhitePawn] |= get_single_bitboard(set_space);
@@ -57,9 +56,6 @@ constexpr Color Chess::setFen(char* fen) {
                 set_space += (int)fen[i] - 49; //Subtract 48 cause of ASCII and -1 to counteract the set_space++ later
         }
         set_space++;
-        i++;
     }
-    
-    return (fen[i + 1] == 'w' || fen[i + 1] == 'W') ? WHITE : BLACK; //White or black indicator is one after the space
 
 }
