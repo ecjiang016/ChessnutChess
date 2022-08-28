@@ -1,13 +1,5 @@
 #include "game.h"
 
-constexpr inline Bitboard Chess::get_bitboard(PieceType piece, Color color) const {
-	return bitboards[makePiece(piece, color)];
-}
-
-inline std::vector<Piece> Chess::getMailbox() const {
-    return std::vector<Piece>(mailbox, mailbox + 64);
-}
-
 void Chess::setFen(std::string fen) {
     int set_space = 56;
 

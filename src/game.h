@@ -18,13 +18,18 @@ class Chess {
 	Bitboard bitboards[15];
 
 	template<Color color> inline Bitboard all_bitboards() const;
-	constexpr inline Bitboard get_bitboard(PieceType piece, Color color) const;
+	constexpr inline Bitboard get_bitboard(PieceType piece, Color color) const {
+        return bitboards[makePiece(piece, color)];
+    }
 
   public:
   	template<Color color> std::vector<Move> getMoves() const;
     template<Color color> void makeMove(Move move);
 
-	inline std::vector<Piece> getMailbox() const;
+	inline std::vector<Piece> getMailbox() const {
+        return std::vector<Piece>(mailbox, mailbox + 64);
+    }
+    
 	void setFen(std::string fen);
 
 };
