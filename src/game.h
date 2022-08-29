@@ -192,7 +192,7 @@ std::vector<Move> Chess::getMoves() const {
 	//Generate pawn moves
 	if constexpr (color == WHITE) {
 		bb = ((bitboards[WhitePawn] & ~pinned) << 8) & ~all; //Single pawn push
-		moves = ((bb & Bitboard(0xFF00)) << 8) & ~all; //Double pawn push generated off of single pawn push
+		moves = ((bb & Bitboard(0xFF0000)) << 8) & ~all; //Double pawn push generated off of single pawn push
 		
 		while (bb) {
 			pos = bitScanForward(bb);
@@ -208,7 +208,7 @@ std::vector<Move> Chess::getMoves() const {
 
 	} else {
 		bb = ((bitboards[BlackPawn] & ~pinned) >> 8) & ~all; //Single pawn push
-		moves = ((bb & Bitboard(0xFF000000000000)) >> 8) & ~all; //Double pawn push generated off of single pawn push
+		moves = ((bb & Bitboard(0xFF0000000000)) >> 8) & ~all; //Double pawn push generated off of single pawn push
 
 		while (bb) {
 			pos = bitScanForward(bb);
