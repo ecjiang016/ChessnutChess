@@ -40,6 +40,14 @@ constexpr Piece makePiece(PieceType piece, Color color) {
     return Piece((color << 3) | piece);
 }
 
+inline PieceType getPieceType(Piece piece) {
+    return PieceType(piece & 0b111);
+}
+
+inline Color getPieceColor(Piece piece) {
+    return Color((piece >> 3) & 0b11);
+}
+
 enum Flag : uint16_t {
     QUIET = 0b1000000000000,
     CAPTURE

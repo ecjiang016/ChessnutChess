@@ -51,3 +51,41 @@ void Chess::setFen(std::string fen) {
     }
 
 }
+
+std::string Chess::getFen() const {
+    std::string fen;
+    char piece_char;
+    int space_counter = 0;
+
+    for (const Piece &piece : mailbox) {
+        if (piece == NoPiece) {
+            space_counter++;
+            continue;
+        }
+
+        switch (getPieceType(piece)) {
+            case Pawn:
+                piece_char = 'P';
+            case Knight:
+                piece_char = 'N';
+            case Bishop:
+                piece_char = 'B';
+            case Rook:
+                piece_char = 'R';
+            case Queen:
+                piece_char = 'Q';
+            case King:
+                piece_char = 'K';
+        }
+
+        if (space_counter != 0) {
+            fen += (char)space_counter + 48; // Add 48 to convert int to ASCII value of that int
+            space_counter = 0;
+        }
+
+        fen += piece_char + (32 * (int)getPieceColor(piece)); // Add 32 to convert letter to lowercase
+    }
+
+    return fen;
+    
+}
