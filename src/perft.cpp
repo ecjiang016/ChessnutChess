@@ -4,13 +4,13 @@
 
 template<Color color>
 int search(int depth, Chess game, Move move) {
-    game.makeMove<color>(move);
-
-    std::vector<Move> moves = game.getMoves<~color>();
-
     if (depth == 0) {
         return 1;
     }
+
+    game.makeMove<color>(move);
+
+    std::vector<Move> moves = game.getMoves<~color>();
 
     int positions = 0;
 
@@ -46,8 +46,9 @@ int search(int depth, Chess game) {
 int main() {
     Chess game;
     game.setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+    std::cout << game.getFen() << std::endl;
 
-    for (int i = 0; i <= 8; i++) {
+    for (int i = 0; i <= 1; i++) {
         auto start = std::chrono::high_resolution_clock::now();
         int positions = search<WHITE>(i, game);
         auto end = std::chrono::high_resolution_clock::now();
