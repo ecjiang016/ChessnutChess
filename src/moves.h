@@ -66,11 +66,11 @@ struct Move {
     }
 
     Move(uint8_t from, uint8_t to) {
-        move = (from << 6) | to;
+        move = QUIET | (from << 6) | to;
     }
 
     Move(int from, int to, Flag flag) {
-        move = (flag << 12) | (from << 6) | to;
+        move = flag | (from << 6) | to;
     }
 
     inline uint8_t from() {
@@ -82,7 +82,7 @@ struct Move {
     }
 
     inline Flag flag() {
-        return Flag((move >> 12) & 0b1111);
+        return Flag(move & 0b1111000000000000);
     }
 
     inline std::string UCI() {
