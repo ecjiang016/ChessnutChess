@@ -3,43 +3,65 @@
 void Chess::setFen(std::string fen) {
     int set_space = 56;
 
+    //Reset all bitboards to empty
+    for (int i = 0; i < 15; i++) {
+        bitboards[i] = Bitboard(0);
+    }
+
+    //Reset mailbox to empty
+    for (int i = 0; i < 64; i++) {
+        mailbox[i] = NoPiece;
+    }
+
     for (int i = 0; i < fen.size(); i++) {
         switch (fen[i]) {
             case 'P':
-                this->bitboards[WhitePawn] |= get_single_bitboard(set_space);
+                bitboards[WhitePawn] |= get_single_bitboard(set_space);
+                mailbox[set_space] = WhitePawn;
                 break;
             case 'p':
-                this->bitboards[BlackPawn] |= get_single_bitboard(set_space);
+                bitboards[BlackPawn] |= get_single_bitboard(set_space);
+                mailbox[set_space] = BlackPawn;
                 break;
             case 'N':
-                this->bitboards[WhiteKnight] |= get_single_bitboard(set_space);
+                bitboards[WhiteKnight] |= get_single_bitboard(set_space);
+                mailbox[set_space] = WhiteKnight;
                 break;
             case 'n':
-                this->bitboards[BlackKnight] |= get_single_bitboard(set_space);
+                bitboards[BlackKnight] |= get_single_bitboard(set_space);
+                mailbox[set_space] = BlackKnight;
                 break;
             case 'B':
-                this->bitboards[WhiteBishop] |= get_single_bitboard(set_space);
+                bitboards[WhiteBishop] |= get_single_bitboard(set_space);
+                mailbox[set_space] = WhiteBishop;
                 break;
             case 'b':
-                this->bitboards[BlackBishop] |= get_single_bitboard(set_space);
+                bitboards[BlackBishop] |= get_single_bitboard(set_space);
+                mailbox[set_space] = BlackBishop;
                 break;
             case 'R':
-                this->bitboards[WhiteRook] |= get_single_bitboard(set_space);
+                bitboards[WhiteRook] |= get_single_bitboard(set_space);
+                mailbox[set_space] = WhiteRook;
                 break;
             case 'r':
-                this->bitboards[BlackRook] |= get_single_bitboard(set_space);
+                bitboards[BlackRook] |= get_single_bitboard(set_space);
+                mailbox[set_space] = BlackRook;
                 break;
             case 'Q':
-                this->bitboards[WhiteQueen] |= get_single_bitboard(set_space);
+                bitboards[WhiteQueen] |= get_single_bitboard(set_space);
+                mailbox[set_space] = WhiteQueen;
                 break;
             case 'q':
-                this->bitboards[BlackQueen] |= get_single_bitboard(set_space);
+                bitboards[BlackQueen] |= get_single_bitboard(set_space);
+                mailbox[set_space] = BlackQueen;
                 break;
             case 'K':
-                this->bitboards[WhiteKing] |= get_single_bitboard(set_space);
+                bitboards[WhiteKing] |= get_single_bitboard(set_space);
+                mailbox[set_space] = WhiteKing;
                 break;
             case 'k':
-                this->bitboards[BlackKing] |= get_single_bitboard(set_space);
+                bitboards[BlackKing] |= get_single_bitboard(set_space);
+                mailbox[set_space] = BlackKing;
                 break;
             case '/':
                 set_space -= 17; //Wrap to the next row
@@ -66,16 +88,22 @@ std::string Chess::getFen() const {
         switch (getPieceType(piece)) {
             case Pawn:
                 piece_char = 'P';
+                break;
             case Knight:
                 piece_char = 'N';
+                break;
             case Bishop:
                 piece_char = 'B';
+                break;
             case Rook:
                 piece_char = 'R';
+                break;
             case Queen:
                 piece_char = 'Q';
+                break;
             case King:
                 piece_char = 'K';
+                break;
         }
 
         if (space_counter != 0) {
