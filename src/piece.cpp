@@ -13,7 +13,7 @@ const std::string index_to_string[64] = {
 };
 
 const std::string flag_to_string[3] = {
-    "NULL", "", " (capture)"
+    "NULL", "", "(capture)"
 };
 
 std::ostream &operator<<(std::ostream &out, Move move) {
