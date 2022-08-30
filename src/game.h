@@ -34,6 +34,13 @@ class Chess {
 	std::string getFen() const;
     void print() const;
 
+	inline Chess() {
+		setFen(starting_pos);
+	}
+
+	inline Chess(std::string starting_pos) {
+		setFen(starting_pos);
+	}
 };
 
 //Returns all the bitboards of a certain color
