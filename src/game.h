@@ -1,5 +1,5 @@
 #pragma once
-#include "moves.h"
+#include "piece.h"
 #include "bits.h"
 #include <vector>
 #include <string>
