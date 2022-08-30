@@ -138,3 +138,60 @@ std::string Chess::getFen() const {
     return fen;
     
 }
+
+void Chess::print() const {
+    std::string fen;
+    char piece_char;
+    int row = 9;
+    int set_space = 71; //Keep track of mailbox indices which are different from how fen indexes the board
+                        //Should become 56 which is the index for the top left of the chess board after passing through the set_space update
+
+    while (set_space != 7) {
+        //Advance set_space and wrap to next row if needed
+        set_space++;
+        if (set_space % 8 == 0) {
+            set_space -= 16;
+            row--;
+            if (set_space != 56) {
+                std::cout << " |\n   + - + - + - + - + - + - + - + - +\n " << row;
+            } else {
+                std::cout << "\n   + - + - + - + - + - + - + - + - +\n 8";
+            }
+        }
+
+        Piece piece = mailbox[set_space];
+
+        std::cout << " | ";
+
+        if (piece == NoPiece) {
+            std::cout << '.';
+            continue;
+        }
+
+        switch (getPieceType(piece)) {
+            case Pawn:
+                piece_char = 'P';
+                break;
+            case Knight:
+                piece_char = 'N';
+                break;
+            case Bishop:
+                piece_char = 'B';
+                break;
+            case Rook:
+                piece_char = 'R';
+                break;
+            case Queen:
+                piece_char = 'Q';
+                break;
+            case King:
+                piece_char = 'K';
+                break;
+        }
+
+        std::cout << char((int)piece_char + 32 * (int)getPieceColor(piece)); // Add 32 to convert letter to lowercase
+    }
+
+    std::cout << " |\n   + - + - + - + - + - + - + - + - +\n";
+    std::cout << "     a   b   c   d   e   f   g   h\n" << std::endl;
+}

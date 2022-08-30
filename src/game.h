@@ -32,6 +32,7 @@ class Chess {
     
 	void setFen(std::string fen);
 	std::string getFen() const;
+    void print() const;
 
 };
 

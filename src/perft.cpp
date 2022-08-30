@@ -46,8 +46,9 @@ int main() {
     Chess game;
     game.setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
     std::cout << game.getFen() << std::endl;
+    game.print();
 
-    for (int i = 0; i <= 10; i++) {
+    for (int i = 0; i <= 0; i++) {
         auto start = std::chrono::high_resolution_clock::now();
         int positions = search<WHITE>(i, game);
         auto end = std::chrono::high_resolution_clock::now();
