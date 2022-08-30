@@ -18,5 +18,6 @@ const std::string flag_to_string[3] = {
 
 std::ostream &operator<<(std::ostream &out, Move move) {
     std::string str;
-    str += index_to_string[move.from()] + index_to_string[move.to()] + ' ' + flag_to_string[move.flag()];
+    str += move.UCI() + ' ' + flag_to_string[move.flag() >> 12];
+    return out << str;
 }

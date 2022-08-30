@@ -4,7 +4,6 @@
 #include <vector>
 
 extern const std::string index_to_string[64];
-std::ostream &operator<<(std::ostream &out, Move move);
 
 enum Color : uint8_t {
     WHITE = 0, BLACK = 1
@@ -144,3 +143,5 @@ inline void add_moves(uint8_t piece_pos, Bitboard move_bitboard, std::vector<Mov
         move_bitboard &= move_bitboard - 1;
     }
 }
+
+std::ostream &operator<<(std::ostream &out, Move move);
