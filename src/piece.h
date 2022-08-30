@@ -4,6 +4,7 @@
 #include <vector>
 
 extern const std::string index_to_string[64];
+std::ostream &operator<<(std::ostream &out, Move move);
 
 enum Color : uint8_t {
     WHITE = 0, BLACK = 1
