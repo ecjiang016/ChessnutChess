@@ -193,7 +193,8 @@ std::vector<Move> Chess::getMoves() const {
 	//Generate pawn moves
 	if constexpr (color == WHITE) {
 		bb = ((bitboards[WhitePawn] & ~pinned) << 8) & ~all; //Single pawn push
-		moves = ((bb & Bitboard(0xFF0000)) << 8) & ~all; //Double pawn push generated off of single pawn push
+		moves = ((bb & Bitboard(0xFF0000)) << 8) & quiet_mask; //Double pawn push generated off of single pawn push
+        bb &= quiet_mask;
 		
 		while (bb) {
 			pos = bitScanForward(bb);
@@ -209,7 +210,8 @@ std::vector<Move> Chess::getMoves() const {
 
 	} else {
 		bb = ((bitboards[BlackPawn] & ~pinned) >> 8) & ~all; //Single pawn push
-		moves = ((bb & Bitboard(0xFF0000000000)) >> 8) & ~all; //Double pawn push generated off of single pawn push
+		moves = ((bb & Bitboard(0xFF0000000000)) >> 8) & quiet_mask; //Double pawn push generated off of single pawn push
+        bb &= quiet_mask;
 
 		while (bb) {
 			pos = bitScanForward(bb);
@@ -251,16 +253,6 @@ std::vector<Move> Chess::getMoves() const {
         add_moves<CAPTURE>(pos, moves & capture_mask, legal_moves);
         bb &= bb - 1;
     }
-
-	//Pinned bishop + diagonal queen moves
-	bb = (get_bitboard(Bishop, color) | get_bitboard(Queen, color)) & pinned;
-	while (bb) {
-		pos = bitScanForward(bb);
-        moves = get_attacks<Bishop>(pos, all) & connecting_masks[king_square][pos];
-        add_moves<QUIET>(pos, moves & quiet_mask, legal_moves);
-        add_moves<CAPTURE>(pos, moves & capture_mask, legal_moves);
-        bb &= bb - 1;
-	}
     
     //Adding rook + not diagonal queen moves
     bb = (get_bitboard(Rook, color) | get_bitboard(Queen, color)) & ~pinned;
