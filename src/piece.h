@@ -3,6 +3,8 @@
 #include "masks.h"
 #include <vector>
 
+extern const std::string index_to_string[64];
+
 enum Color : uint8_t {
     WHITE = 0, BLACK = 1
 };
