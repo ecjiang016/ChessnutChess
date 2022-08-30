@@ -50,8 +50,6 @@ inline Bitboard Chess::all_bitboards() const {
 
 template<Color color>
 void Chess::makeMove(Move move) {
-	uint64_t from_to;
-
 	switch (move.flag()) {
 		case QUIET:
 			bitboards[mailbox[move.from()]] ^= get_single_bitboard(move.from()) | get_single_bitboard(move.to()); // Update piece position on bitboard
