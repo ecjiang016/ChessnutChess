@@ -79,7 +79,28 @@ std::string Chess::getFen() const {
     char piece_char;
     int space_counter = 0;
 
-    for (const Piece &piece : mailbox) {
+    int set_space = 71; //Keep track of mailbox indices which are different from how fen indexes the board
+                        //Should become 56 which is the index for the top left of the chess board after passing through the set_space update
+
+    while (set_space != 7) {
+        //Advance set_space and wrap to next row if needed
+        set_space++;
+        if (set_space % 8 == 0) {
+            set_space -= 16;
+
+            //The number of spaces neededs to be added before ending a row
+            if (space_counter != 0) {
+                fen += std::to_string(space_counter);
+                space_counter = 0;
+            }
+
+            if (set_space != 56) { //Stops it from adding a "/" at the beginning of the fen
+                fen += '/'; //End of row is marked with a "/"
+            }       
+        }
+
+        Piece piece = mailbox[set_space];
+
         if (piece == NoPiece) {
             space_counter++;
             continue;
@@ -107,7 +128,7 @@ std::string Chess::getFen() const {
         }
 
         if (space_counter != 0) {
-            fen += (char)space_counter + 48; // Add 48 to convert int to ASCII value of that int
+            fen += std::to_string(space_counter);
             space_counter = 0;
         }
 
