@@ -103,9 +103,9 @@ inline Bitboard sliding_moves(Bitboard occupancy, Bitboard mask, Bitboard piece_
 template<Color color>
 inline Bitboard pawn_attacks(Bitboard pawns) {
     if constexpr (color == WHITE) {
-        return ((pawns << 7) & LEFT_COLUMN) | ((pawns << 9) & RIGHT_COLUMN);
+        return ((pawns & ~LEFT_COLUMN) << 7) | ((pawns & ~RIGHT_COLUMN) << 9);
     } else {
-        return ((pawns >> 9) & LEFT_COLUMN) | ((pawns >> 7) & RIGHT_COLUMN);
+        return ((pawns & ~LEFT_COLUMN) >> 9) | ((pawns & ~RIGHT_COLUMN) >> 7);
     }
 }
 

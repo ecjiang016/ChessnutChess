@@ -235,7 +235,7 @@ std::vector<Move> Chess::getMoves() const {
 	//Add pawn attacks
 	bb = get_bitboard(Pawn, color) & ~pinned;
     while (bb) {
-        add_moves<CAPTURE>(bitScanForward(bb), pawn_attacks<color>(bb & -bb) & get_bitboard(Pawn, ~color) & capture_mask, legal_moves);
+        add_moves<CAPTURE>(bitScanForward(bb), pawn_attacks<color>(bb & -bb) & capture_mask, legal_moves);
         bb &= bb - 1;
     }
 
