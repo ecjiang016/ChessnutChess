@@ -42,13 +42,19 @@ int search(int depth, Chess game) {
     return positions;
 }
 
-int main() {
+int main(int argc, char * argv[]) {
     Chess game;
     game.setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
     std::cout << game.getFen() << std::endl;
     game.print();
 
-    for (int i = 0; i <= 0; i++) {
+    int depth = 4;
+    if (argc == 2) {
+        std::string depth_str = argv[1];
+        depth = std::stoi(depth_str);
+    }
+
+    for (int i = 0; i <= depth; i++) {
         auto start = std::chrono::high_resolution_clock::now();
         int positions = search<WHITE>(i, game);
         auto end = std::chrono::high_resolution_clock::now();
