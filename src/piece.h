@@ -75,6 +75,14 @@ struct Move {
         move = flag | (from << 6) | to;
     }
 
+    Move(std::string uci) {
+        move = QUIET | ((((int((char)uci[1]) - 49) * 8) + (int((char)uci[0]) - 97)) << 6) | (((int((char)uci[3]) - 49) * 8) + (int((char)uci[2]) - 97));
+    }
+
+    Move(std::string uci, Flag flag) {
+        move = flag | ((((int((char)uci[1]) - 49) * 8) + (int((char)uci[0]) - 97)) << 6) | (((int((char)uci[3]) - 49) * 8) + (int((char)uci[2]) - 97));
+    }
+
     inline uint8_t from() {
         return (move >> 6) & 0b111111;
     }
