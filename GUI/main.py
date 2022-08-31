@@ -9,7 +9,7 @@ import pygame
 import time
 import numpy as np
 import os
-from pychess import pyChess as Chess
+from chess import Chess
 
 
 WINDOW_SIZE = 800
@@ -200,9 +200,10 @@ def single_move(game):
 
 def main(fen=""):
     game = Chess()
+    game.setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
 
     if fen:
-        game.loadFen(fen)
+        game.setFen(fen)
 
     screen = pygame.display.set_mode((WINDOW_SIZE, WINDOW_SIZE))
     clock = pygame.time.Clock()
@@ -223,7 +224,8 @@ def main(fen=""):
                 return
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if piece != None and (np.sign(piece)>0) == game.color:
+                #print((np.sign(piece) < 0) == game.color)
+                if piece and (np.sign(piece) < 0) == game.color:
                     selected_piece = piece, x, y
                     move_list = game.pieceMoves(x, y)
 
