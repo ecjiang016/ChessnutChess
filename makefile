@@ -10,3 +10,8 @@ all:tool
 
 tool: $(OBJS)
 	$(CXX) $(CPPFLAGS) $(SRCS) src/perft.cpp -o perft.exe
+
+clean:
+	$(RM) $(OBJS)
+	$(RM) GUI/*.pyd
+	rm -r build
