@@ -1772,7 +1772,7 @@ const Bitboard connecting_masks[64][64] = {
     }
 };
 
-const Bitboard connecting_full_masks[64][64] = {
+const Bitboard ray_masks[64][64] = {
     {
     0x0,     0xfe,     0xfe,     0xfe,     0xfe,     0xfe,     0xfe,     0xfe, 
     0x101010101010100,     0x8040201008040200,     0x0,     0x0,     0x0,     0x0,     0x0,     0x0, 

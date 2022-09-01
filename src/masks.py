@@ -300,7 +300,7 @@ def compute_connecting_masks():
         f.write("};\n\n")
         f.close()
 
-def compute_connecting_full_masks():
+def compute_ray_masks():
     """
     Connects two positions on the board from the first to the second, not including the first position.
     It goes from the first position towards the second position until it hits the edge.
@@ -309,7 +309,7 @@ def compute_connecting_full_masks():
     """
 
     with open(FILE, "a") as f:
-        f.write("const Bitboard connecting_full_masks[64][64] = {\n")
+        f.write("const Bitboard ray_masks[64][64] = {\n")
 
         for pypos1 in range(64):
             pos1 = convert_pos(pypos1)
@@ -421,5 +421,5 @@ const Bitboard LEFT_TWO= 0x303030303030303;\n\n"""
     compute_all_direction_masks()
     compute_directional_masks()
     compute_connecting_masks()
-    compute_connecting_full_masks()
+    compute_ray_masks()
     print("Masks Generated")
