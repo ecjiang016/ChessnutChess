@@ -303,11 +303,11 @@ std::vector<Move> Chess::getMoves() const {
         //Handle en passants
         if constexpr (color == WHITE) {
             if ((moves >> 8) & get_single_bitboard(history.back().en_passant_square)) {
-                legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per turn
+                legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per piece
             }
         } else {
             if ((moves << 8) & get_single_bitboard(history.back().en_passant_square)) {
-                legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per turn
+                legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per piece
             }
         }
         bb &= bb - 1;
