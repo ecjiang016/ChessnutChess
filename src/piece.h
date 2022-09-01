@@ -63,15 +63,13 @@ struct Move {
     uint16_t move;
 
   public:
-    Move() {
-        move = 0;
-    }
+    inline Move() : move(0) {}
 
-    Move(uint8_t from, uint8_t to) {
+    inline Move(uint8_t from, uint8_t to) {
         move = QUIET | (from << 6) | to;
     }
 
-    Move(int from, int to, Flag flag) {
+    inline Move(int from, int to, Flag flag) {
         move = flag | (from << 6) | to;
     }
 
