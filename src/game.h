@@ -237,22 +237,75 @@ std::vector<Move> Chess::getMoves() const {
             bb = get_bitboard(Pawn, color) & pinned;
             while (bb) {
                 pos = bitScanForward(bb);
+
+				//Pawn pushes
+				if constexpr (color == WHITE) {
+					moves = ((bb & -bb) << 8) & quiet_mask & ray_masks[king_square][pos]; //Single pawn push
+					//If single push is in the direction of the pin, the second push will be as well
+					if (((moves & Bitboard(0xFF0000)) << 8) & quiet_mask) { //Double pawn push generated off of single pawn push
+						legal_moves.push_back(Move(pos, pos + 16, DOUBLE_PUSH));
+					}
+					if (moves & quiet_mask) { //Add single pawn push
+						legal_moves.push_back(Move(pos, pos + 8, QUIET));
+					}
+
+				} else {
+					moves = ((bb & -bb) >> 8) & quiet_mask & ray_masks[king_square][pos]; //Single pawn push
+					//If single push is in the direction of the pin, the second push will be as well
+					if (((moves & Bitboard(0xFF0000000000)) >> 8) & quiet_mask) { //Double pawn push generated off of single pawn push
+						legal_moves.push_back(Move(pos, pos - 16, DOUBLE_PUSH));
+					}
+					if (moves & quiet_mask) { //Add single pawn push
+						legal_moves.push_back(Move(pos, pos - 8, QUIET));
+					}
+				}
                 
                 //Pawn attacks
-                moves = pawn_attacks<color>(bb & -bb) & ray_masks[king_square][bitScanForward(bb)];
+                moves = pawn_attacks<color>(bb & -bb) & ray_masks[king_square][pos];
                 add_moves<CAPTURE>(bitScanForward(bb), moves & capture_mask, legal_moves);
+
                 //Handle en passants
                 if constexpr (color == WHITE) {
                     if ((moves >> 8) & get_single_bitboard(history.back().en_passant_square)) {
-                        legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per turn
+                        legal_moves.push_back(Move(pos, history.back().en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per turn
                     }
                 } else {
                     if ((moves << 8) & get_single_bitboard(history.back().en_passant_square)) {
-                        legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per turn
+                        legal_moves.push_back(Move(pos, history.back().en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per turn
                     }
                 }
                 bb &= bb - 1;
             }
+
+			//Pinned knights can't move, don't need to generate any moves for them
+
+			//Adding bishop + diagonal queen moves
+			bb = (get_bitboard(Bishop, color) | get_bitboard(Queen, color)) & pinned;
+			while (bb) {
+				pos = bitScanForward(bb);
+				moves = get_attacks<Bishop>(pos, all) & ray_masks[king_square][pos];
+				add_moves<QUIET>(pos, moves & quiet_mask, legal_moves);
+				//Add captures
+				//There's a max of one capture possible for pinned pieces
+				if (moves & capture_mask) {
+					legal_moves.push_back(Move(pos, bitScanForward(moves & capture_mask), CAPTURE));
+				}
+				bb &= bb - 1;
+			}
+
+			//Adding bishop + diagonal queen moves
+			bb = (get_bitboard(Rook, color) | get_bitboard(Queen, color)) & pinned;
+			while (bb) {
+				pos = bitScanForward(bb);
+				moves = get_attacks<Rook>(pos, all) & ray_masks[king_square][pos];
+				add_moves<QUIET>(pos, moves & quiet_mask, legal_moves);
+				//Add captures
+				//There's a max of one capture possible for pinned pieces
+				if (moves & capture_mask) {
+					legal_moves.push_back(Move(pos, bitScanForward(moves & capture_mask), CAPTURE));
+				}
+				bb &= bb - 1;
+			}
 
             break;
 
