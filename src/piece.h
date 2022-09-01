@@ -51,8 +51,8 @@ inline Color getPieceColor(Piece piece) {
 }
 
 enum Flag : uint16_t {
-    QUIET = 0b1000000000000,
-    CAPTURE
+    QUIET   =  0b1000000000000,
+    CAPTURE = 0b10000000000000
 };
 
 struct Move {
@@ -136,7 +136,7 @@ inline Bitboard get_attacks<King>(int pos_idx, Bitboard occupancy) {
     return king_masks[pos_idx];
 }
 
-template<Flag flag>
+template<Flag flag = QUIET>
 inline void add_moves(uint8_t piece_pos, Bitboard move_bitboard, std::vector<Move> &moves) {
     while (move_bitboard) {
         moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), flag));
