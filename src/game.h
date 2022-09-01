@@ -7,15 +7,18 @@
 const std::string starting_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
 
 struct History {
+  public:
 	//Stores information that the chess game needs to move or undo moves
 	uint8_t en_passant_square; //Index of the pawn that can be en passant captured
 	PieceType capture; //Captured piece for undoing moves
+    inline History() : en_passant_square(0), capture(NoPieceType) {}
 };
 
 class Chess {
   private:
     Piece mailbox[64];
 	Bitboard bitboards[15];
+    std::vector<History> history;
 
 	template<Color color> inline Bitboard all_bitboards() const;
 	constexpr inline Bitboard get_bitboard(PieceType piece, Color color) const {
@@ -36,10 +39,14 @@ class Chess {
 
 	inline Chess() {
 		setFen(starting_pos);
+        history.reserve(200);
+        history.push_back(History());
 	}
 
 	inline Chess(std::string starting_pos) {
 		setFen(starting_pos);
+        history.reserve(200);
+        history.push_back(History());
 	}
 };
 
@@ -57,6 +64,8 @@ inline Bitboard Chess::all_bitboards() const {
 
 template<Color color>
 void Chess::makeMove(Move move) {
+    History current_history_data;
+
 	switch (move.flag()) {
 		case QUIET:
 			bitboards[mailbox[move.from()]] ^= get_single_bitboard(move.from()) | get_single_bitboard(move.to()); // Update piece position on bitboard
@@ -70,7 +79,36 @@ void Chess::makeMove(Move move) {
 			mailbox[move.to()] = mailbox[move.from()]; // Update new mailbox position
 			mailbox[move.from()] = NoPiece; // Remove the mailbox piece from it's old position
 			break;
+
+        //Same as quiet but stores the ending position of the pawn for en passant
+        case DOUBLE_PUSH:
+            bitboards[mailbox[move.from()]] ^= get_single_bitboard(move.from()) | get_single_bitboard(move.to()); // Update piece position on bitboard
+			mailbox[move.to()] = mailbox[move.from()]; // Update new mailbox position
+			mailbox[move.from()] = NoPiece; // Remove the mailbox piece from it's old position
+            current_history_data.en_passant_square = move.to();
+			break;
+
+        case EN_PASSANT:
+            //Move the pawn
+            bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from()) | get_single_bitboard(move.to()); // Update piece position on bitboard
+            mailbox[move.to()] = makePiece(Pawn, color); // Update new mailbox position
+			mailbox[move.from()] = NoPiece; // Remove the mailbox piece from it's old position
+
+            //Get rid of the captured pawn
+            if constexpr (color == WHITE) {
+                bitboards[makePiece(Pawn, ~color)] ^= get_single_bitboard(move.to() - 8);
+                mailbox[move.to() - 8] = NoPiece;
+            } else {
+                bitboards[makePiece(Pawn, ~color)] ^= get_single_bitboard(move.to() + 8);
+                mailbox[move.to() + 8] = NoPiece;
+            }
+            
+            break;
+
 	}
+
+    history.push_back(current_history_data);
+
 }
 
 template<Color color>
@@ -209,7 +247,7 @@ std::vector<Move> Chess::getMoves() const {
 
 		while (moves) {
 			pos = bitScanForward(moves);
-			legal_moves.push_back(Move(pos - 16, pos));
+			legal_moves.push_back(Move(pos - 16, pos, DOUBLE_PUSH));
 			moves &= moves - 1;
 		}
 
@@ -226,7 +264,7 @@ std::vector<Move> Chess::getMoves() const {
 
 		while (moves) {
 			pos = bitScanForward(moves);
-			legal_moves.push_back(Move(pos + 16, pos));
+			legal_moves.push_back(Move(pos + 16, pos, DOUBLE_PUSH));
 			moves &= moves - 1;
 		}
 
@@ -235,7 +273,18 @@ std::vector<Move> Chess::getMoves() const {
 	//Add pawn attacks
 	bb = get_bitboard(Pawn, color) & ~pinned;
     while (bb) {
-        add_moves<CAPTURE>(bitScanForward(bb), pawn_attacks<color>(bb & -bb) & capture_mask, legal_moves);
+        moves = pawn_attacks<color>(bb & -bb);
+        add_moves<CAPTURE>(bitScanForward(bb), moves & capture_mask, legal_moves);
+        //Handle en passants
+        if constexpr (color == WHITE) {
+            if ((moves >> 8) & get_single_bitboard(history.back().en_passant_square)) {
+                legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per turn
+            }
+        } else {
+            if ((moves << 8) & get_single_bitboard(history.back().en_passant_square)) {
+                legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per turn
+            }
+        }
         bb &= bb - 1;
     }
 

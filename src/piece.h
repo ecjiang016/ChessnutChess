@@ -14,6 +14,7 @@ constexpr Color operator~(Color color) {
 }
 
 enum PieceType : uint8_t {
+    NoPieceType = 0,
     Pawn = 1,
     Knight = 2,
     Bishop = 3,
@@ -52,7 +53,9 @@ inline Color getPieceColor(Piece piece) {
 
 enum Flag : uint16_t {
     QUIET   =  0b1000000000000,
-    CAPTURE = 0b10000000000000
+    CAPTURE = 0b10000000000000,
+    DOUBLE_PUSH = 0b11000000000000,
+    EN_PASSANT = 0b100000000000000
 };
 
 struct Move {
