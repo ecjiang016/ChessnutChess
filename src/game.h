@@ -82,8 +82,8 @@ void Chess::makeMove(Move move) {
 
         //Same as quiet but stores the ending position of the pawn for en passant
         case DOUBLE_PUSH:
-            bitboards[mailbox[move.from()]] ^= get_single_bitboard(move.from()) | get_single_bitboard(move.to()); // Update piece position on bitboard
-			mailbox[move.to()] = mailbox[move.from()]; // Update new mailbox position
+            bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from()) | get_single_bitboard(move.to()); // Update piece position on bitboard
+			mailbox[move.to()] = makePiece(Pawn, color); // Update new mailbox position
 			mailbox[move.from()] = NoPiece; // Remove the mailbox piece from it's old position
             current_history_data.en_passant_square = move.to();
 			break;
@@ -102,7 +102,7 @@ void Chess::makeMove(Move move) {
                 bitboards[makePiece(Pawn, ~color)] ^= get_single_bitboard(move.to() + 8);
                 mailbox[move.to() + 8] = NoPiece;
             }
-            
+
             break;
 
 	}
