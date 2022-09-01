@@ -229,6 +229,31 @@ std::vector<Move> Chess::getMoves() const {
 		case 0:
             quiet_mask = ~all; //Quiet moves are on empty spaces
             capture_mask = enemy;
+
+            //Pins only have to be taken care of when there isn't a check
+            //Pinned pieces can only move in the squares between the checker it's blocking and the king
+            
+            //Pinned pawn moves
+            bb = get_bitboard(Pawn, color) & pinned;
+            while (bb) {
+                pos = bitScanForward(bb);
+                
+                //Pawn attacks
+                moves = pawn_attacks<color>(bb & -bb) & ray_masks[king_square][bitScanForward(bb)];
+                add_moves<CAPTURE>(bitScanForward(bb), moves & capture_mask, legal_moves);
+                //Handle en passants
+                if constexpr (color == WHITE) {
+                    if ((moves >> 8) & get_single_bitboard(history.back().en_passant_square)) {
+                        legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per turn
+                    }
+                } else {
+                    if ((moves << 8) & get_single_bitboard(history.back().en_passant_square)) {
+                        legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per turn
+                    }
+                }
+                bb &= bb - 1;
+            }
+
             break;
 
 	}
