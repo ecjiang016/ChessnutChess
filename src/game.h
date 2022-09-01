@@ -211,7 +211,7 @@ std::vector<Move> Chess::getMoves() const {
 
                     //Add capture moves to the vector
                     while (bb) {
-                        legal_moves.push_back(Move(bitScanForward(bb), pos, QUIET)); // Will always only need to add one move per piece
+                        legal_moves.push_back(Move(bitScanForward(bb), pos, CAPTURE)); // Will always only need to add one move per piece
                         bb &= bb - 1; //Reset ls1b
                     }
                     
