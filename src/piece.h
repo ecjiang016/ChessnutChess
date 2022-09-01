@@ -14,6 +14,7 @@ constexpr Color operator~(Color color) {
 }
 
 enum PieceType : uint8_t {
+    NoPieceType = 0,
     Pawn = 1,
     Knight = 2,
     Bishop = 3,
@@ -51,8 +52,10 @@ inline Color getPieceColor(Piece piece) {
 }
 
 enum Flag : uint16_t {
-    QUIET = 0b1000000000000,
-    CAPTURE
+    QUIET   =  0b1000000000000,
+    CAPTURE = 0b10000000000000,
+    DOUBLE_PUSH = 0b11000000000000,
+    EN_PASSANT = 0b100000000000000
 };
 
 struct Move {
@@ -63,15 +66,13 @@ struct Move {
     uint16_t move;
 
   public:
-    Move() {
-        move = 0;
-    }
+    inline Move() : move(0) {}
 
-    Move(uint8_t from, uint8_t to) {
+    inline Move(uint8_t from, uint8_t to) {
         move = QUIET | (from << 6) | to;
     }
 
-    Move(int from, int to, Flag flag) {
+    inline Move(int from, int to, Flag flag) {
         move = flag | (from << 6) | to;
     }
 
@@ -144,7 +145,7 @@ inline Bitboard get_attacks<King>(int pos_idx, Bitboard occupancy) {
     return king_masks[pos_idx];
 }
 
-template<Flag flag>
+template<Flag flag = QUIET>
 inline void add_moves(uint8_t piece_pos, Bitboard move_bitboard, std::vector<Move> &moves) {
     while (move_bitboard) {
         moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), flag));

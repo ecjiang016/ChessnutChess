@@ -8,7 +8,7 @@ int search(int depth, Chess game, Move move) {
         return 1;
     }
 
-    game.makeMove<color>(move);
+    game.makeMove<~color>(move);
     std::vector<Move> moves = game.getMoves<color>();
 
     int positions = 0;

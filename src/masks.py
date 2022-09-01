@@ -252,30 +252,30 @@ def compute_connecting_masks():
                     pass
 
                 elif x1 == x2: #Vertical mask
-                    for s in range(1, abs(y2 - y1) - 1):
+                    for s in range(1, abs(y2 - y1)):
                         board[s * np.sign(y2 - y1) * 8 + pos1] = 1
 
                 elif y1 == y2: #Horizontal mask
-                    for s in range(1, abs(x2 - x1) - 1):
+                    for s in range(1, abs(x2 - x1)):
                         board[s * np.sign(x2 - x1) + pos1] = 1
 
                 elif (y1-y2)/(x2-x1) == 1: #Diagonal, positive slope
                     if (y1 - y2) >= 1: #Up right
-                        for s in range(1, abs(y1 - y2) - 1):
+                        for s in range(1, abs(y1 - y2)):
                             board[s * -7 + pos1] = 1
 
                     else: #Down left
-                        for s in range(1, abs(y1 - y2) - 1):
+                        for s in range(1, abs(y1 - y2)):
                             board[s * 7 + pos1] = 1
 
 
                 elif (y1-y2)/(x2-x1) == -1: #Diagonal, negative slope
                     if (y1 - y2) >= 1: #Up left
-                        for s in range(1, abs(y1 - y2) - 1):
+                        for s in range(1, abs(y1 - y2)):
                             board[s * -9 + pos1] = 1
 
                     else: #Down right
-                        for s in range(1, abs(y1 - y2) - 1):
+                        for s in range(1, abs(y1 - y2)):
                             board[s * 9 + pos1] = 1
                 
                 else: #Fail safe idk why there really isn't a point cause there's no conceivable way of it ever getting here and the board not being full of zeros but since I wrote it already why not keep it for absolutely no reason but to make myself feel a little better and worse at the same time since it shouldn't break but then also it shouldn't even get to the breaking point in the first place. Well now the only reason why this exists is to host this abusdly long comment that's kinda funny at the time that I'm writing this but might prove to be a little bothersome later.
@@ -300,7 +300,7 @@ def compute_connecting_masks():
         f.write("};\n\n")
         f.close()
 
-def compute_connecting_full_masks():
+def compute_ray_masks():
     """
     Connects two positions on the board from the first to the second, not including the first position.
     It goes from the first position towards the second position until it hits the edge.
@@ -309,7 +309,7 @@ def compute_connecting_full_masks():
     """
 
     with open(FILE, "a") as f:
-        f.write("const Bitboard connecting_full_masks[64][64] = {\n")
+        f.write("const Bitboard ray_masks[64][64] = {\n")
 
         for pypos1 in range(64):
             pos1 = convert_pos(pypos1)
@@ -421,5 +421,5 @@ const Bitboard LEFT_TWO= 0x303030303030303;\n\n"""
     compute_all_direction_masks()
     compute_directional_masks()
     compute_connecting_masks()
-    compute_connecting_full_masks()
+    compute_ray_masks()
     print("Masks Generated")
