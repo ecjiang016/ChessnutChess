@@ -1,6 +1,6 @@
 import numpy as np
 
-FILE = "./src/masks.h"
+FILE = "./src/masks.cpp"
 
 def convert_to_hex_bitboard(board):
     #decimal = sum([digit*(2**power) for power, digit in enumerate(np.flipud(board.reshape(8, 8)).ravel())])
@@ -395,23 +395,10 @@ if __name__ == '__main__':
 
     with open(FILE, "a") as f:
         f.write("//A whole ton of masks that are precomputed using masks.py \n")
-        f.write("//The Python file just writes all the hex numbers directly into this file as text\n")
-        f.write("\n")
+        f.write("//The Python file just writes all the hex numbers directly into this file as text\n\n")
         f.write("//It's done this way solely because my Python is better\n")
         f.write("//And also I already had most the code for this implemented and working in Python\n\n")
-        f.write("#pragma once \n")
-        f.write("#include <stdint.h>\n")
-        f.write("typedef uint64_t Bitboard;\n")
-        f.write("""
-const Bitboard TOP_ROW = 0xFF00000000000000;
-const Bitboard BOTTOM_ROW = 0xFF;
-const Bitboard RIGHT_COLUMN = 0x8080808080808080;
-const Bitboard LEFT_COLUMN = 0x101010101010101;
-const Bitboard TOP_TWO = 0xFFFF000000000000;
-const Bitboard BOTTOM_TWO = 0xFFFF;
-const Bitboard RIGHT_TWO = 0xC0C0C0C0C0C0C0C0;
-const Bitboard LEFT_TWO= 0x303030303030303;\n\n"""
-        )
+        f.write('#include "masks.h"\n\n')
         f.close()
 
     compute_rook_masks()

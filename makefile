@@ -3,7 +3,7 @@ CXX=g++
 RM = rm -f
 CPPFLAGS=-O3 -std=c++17
 
-SRCS=$(patsubst %,src/%,game.cpp piece.cpp bits.cpp)
+SRCS=$(patsubst %,src/%,game.cpp piece.cpp bits.cpp masks.cpp)
 OBJS=$(subst .cpp,.o,$(SRCS))
 
 all:tool
