@@ -257,22 +257,15 @@ std::vector<Move> Chess::getMoves() const {
             
             //castling_pieces is a mask that includes the white king and the castling rook
             //king_castle_spaces is a mask that includes the 2 spaces that the king travels through and to when castling
-            if constexpr (color == WHITE) {
-                constexpr Bitboard castling_pieces = Bitboard(0b10010000);
-                constexpr Bitboard king_castle_spaces = Bitboard(0b01100000);
-            } else {
-                constexpr Bitboard castling_pieces = Bitboard(0b00010001);
-                constexpr Bitboard king_castle_spaces = Bitboard(0b00001100);
-            }
-
+            
             //history.back().castling & castling_pieces will evaluate to 0 if the king and rook haven't moved
             //(danger | all) & king_castle_spaces will evaulate to 0 if the king won't get into check or get blocked on the way it's castle position
             //Castling is possible if ~piece_moved & ~danger which is logically equivalent to ~(piece_moved | danger) or !(piece_moved | danger) to cast to bool
             
-            if (!((history.back().castling & castling_pieces) | ((danger | all) & king_castle_spaces))) {
+            if (!((history.back().castling & castling_pieces<color, CASTLE_SHORT>()) | ((danger | all) & king_castle_spaces<color, CASTLE_SHORT>()))) {
                 legal_moves.push_back(Move(4, 6, CASTLE_SHORT));
             }
-            if (!((history.back().castling & castling_pieces) | ((danger | all) & king_castle_spaces))) {
+            if (!((history.back().castling & castling_pieces<color, CASTLE_LONG>()) | ((danger | all) & king_castle_spaces<color, CASTLE_LONG>()))) {
                 legal_moves.push_back(Move(4, 2, CASTLE_LONG));
             }
 
