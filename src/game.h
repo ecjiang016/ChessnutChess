@@ -21,7 +21,8 @@ struct History {
     inline History() : en_passant_square(0), capture(NoPiece), castling(0x6E1111111111116E) {}
 
     //When making a new history off of an old one, the only relevant information is the castling square
-    inline History(const History &history) : en_passant_square(0), capture(NoPiece), castling(history.castling) {}
+	//Copy constuctor can only be used for make umake, otherwise copying of the Chess class doesn't work correctly
+    //inline History(const History &history) : en_passant_square(0), capture(NoPiece), castling(history.castling) {}
 };
 
 class Chess {
@@ -74,7 +75,8 @@ inline Bitboard Chess::all_bitboards() const {
 
 template<Color color>
 void Chess::makeMove(Move move) {
-    History current_history_data = history.back();
+    History current_history_data;
+	current_history_data.castling = history.back().castling;
 
 	switch (move.flag()) {
 		case QUIET:
