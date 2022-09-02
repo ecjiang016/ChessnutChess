@@ -10,8 +10,18 @@ struct History {
   public:
 	//Stores information that the chess game needs to move or undo moves
 	uint8_t en_passant_square; //Index of the pawn that can be en passant captured
-	PieceType capture; //Captured piece for undoing moves
-    inline History() : en_passant_square(0), capture(NoPieceType) {}
+	Piece capture; //Captured piece for undoing moves
+    Bitboard castling;
+    /*
+    Castling gets initalized to 0x6E1111111111116E
+    which includes the inital position of the rooks and kings as 0s and everything else as 1s
+    This is used to keep track of if the pieces have been moved or captured to determine if castling is still possible
+    */
+
+    inline History() : en_passant_square(0), capture(NoPiece), castling(0x6E1111111111116E) {}
+
+    //When making a new history off of an old one, the only relevant information is the castling square
+    inline History(const History &history) : en_passant_square(0), capture(NoPiece), castling(history.castling) {}
 };
 
 class Chess {
@@ -64,20 +74,29 @@ inline Bitboard Chess::all_bitboards() const {
 
 template<Color color>
 void Chess::makeMove(Move move) {
-    History current_history_data;
+    History current_history_data = history.back();
 
 	switch (move.flag()) {
 		case QUIET:
 			bitboards[mailbox[move.from()]] ^= get_single_bitboard(move.from()) | get_single_bitboard(move.to()); // Update piece position on bitboard
 			mailbox[move.to()] = mailbox[move.from()]; // Update new mailbox position
 			mailbox[move.from()] = NoPiece; // Remove the mailbox piece from it's old position
+
+            //If king or rook makes a quiet move, remove it from the castling bitboard
+            current_history_data.castling |= get_single_bitboard(move.from());
 			break;
 
 		case CAPTURE:
-			bitboards[mailbox[move.from()]] ^= get_single_bitboard(move.from()) | get_single_bitboard(move.to()); // Update piece position on bitboard
+			bitboards[mailbox[move.from()]] ^= get_single_bitboard(move.from()) | get_single_bitboard(move.to());; // Update piece position on bitboard
 			bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to()); //Remove captured piece from its bitboard
+            current_history_data.capture = mailbox[move.to()]; //Save the captured piece to the history
 			mailbox[move.to()] = mailbox[move.from()]; // Update new mailbox position
 			mailbox[move.from()] = NoPiece; // Remove the mailbox piece from it's old position
+
+            //If king or rook makes move, remove it from the castling bitboard 
+            //If king or rook gets captured, which means the to position intersects with the castling bitboard, also remove it
+            current_history_data.castling |= get_single_bitboard(move.from()) | get_single_bitboard(move.to());
+
 			break;
 
         //Same as quiet but stores the ending position of the pawn for en passant
@@ -102,6 +121,8 @@ void Chess::makeMove(Move move) {
                 bitboards[makePiece(Pawn, ~color)] ^= get_single_bitboard(move.to() + 8);
                 mailbox[move.to() + 8] = NoPiece;
             }
+
+            current_history_data.capture = makePiece(Pawn, ~color); //Save the captured piece to the history
 
             break;
 
@@ -229,6 +250,30 @@ std::vector<Move> Chess::getMoves() const {
 		case 0:
             quiet_mask = ~all; //Quiet moves are on empty spaces
             capture_mask = enemy;
+
+            //Castling is only possible when there's no check
+            
+            //castling_pieces is a mask that includes the white king and the castling rook
+            //king_castle_spaces is a mask that includes the 2 spaces that the king travels through and to when castling
+            if constexpr (color == WHITE) {
+                constexpr Bitboard castling_pieces = Bitboard(0b10010000);
+                constexpr Bitboard king_castle_spaces = Bitboard(0b01100000);
+            } else {
+                constexpr Bitboard castling_pieces = Bitboard(0b00010001);
+                constexpr Bitboard king_castle_spaces = Bitboard(0b00001100);
+            }
+
+            //history.back().castling & castling_pieces will evaluate to 0 if the king and rook haven't moved
+            //(danger | all) & king_castle_spaces will evaulate to 0 if the king won't get into check or get blocked on the way it's castle position
+            //Castling is possible if ~piece_moved & ~danger which is logically equivalent to ~(piece_moved | danger) or !(piece_moved | danger) to cast to bool
+            
+            if (!((history.back().castling & castling_pieces) | ((danger | all) & king_castle_spaces))) {
+                legal_moves.push_back(Move(4, 6, CASTLE_SHORT));
+            }
+            if (!((history.back().castling & castling_pieces) | ((danger | all) & king_castle_spaces))) {
+                legal_moves.push_back(Move(4, 2, CASTLE_LONG));
+            }
+
 
             //Pins only have to be taken care of when there isn't a check
             //Pinned pieces can only move in the squares between the checker it's blocking and the king
