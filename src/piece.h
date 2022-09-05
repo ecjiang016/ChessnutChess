@@ -155,4 +155,17 @@ inline void add_moves(uint8_t piece_pos, Bitboard move_bitboard, std::vector<Mov
     }
 }
 
+//Masks for castling
+template<Color color, Flag flag>
+constexpr Bitboard castling_pieces() {
+    return color == WHITE ? (flag == CASTLE_SHORT ? Bitboard(0b10010000) : Bitboard(0b00010001)) :
+        (flag == CASTLE_SHORT ? Bitboard(0b10010000) << 56 : Bitboard(0b00010001) << 56);
+}
+
+template<Color color, Flag flag>
+constexpr Bitboard king_castle_spaces() {
+    return color == WHITE ? (flag == CASTLE_SHORT ? Bitboard(0b01100000) : Bitboard(0b00001100)) :
+        (flag == CASTLE_SHORT ? Bitboard(0b01100000) << 56 : Bitboard(0b00001100) << 56);
+}
+
 std::ostream &operator<<(std::ostream &out, Move move);
