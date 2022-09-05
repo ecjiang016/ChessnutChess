@@ -39,6 +39,7 @@ class Chess {
   public:
   	template<Color color> std::vector<Move> getMoves() const;
     template<Color color> void makeMove(Move move);
+    template<Color color> void unmakeMove(Move move);
 
 	inline std::vector<Piece> getMailbox() const {
         return std::vector<Piece>(mailbox, mailbox + 64);
@@ -131,6 +132,50 @@ void Chess::makeMove(Move move) {
 	}
 
     history.push_back(current_history_data);
+
+}
+
+template<Color color>
+void Chess::unmakeMove(Move move) {
+    switch (move.flag()) {
+        case QUIET:
+            bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.from()) | get_single_bitboard(move.to()); // Update piece position on bitboard
+			mailbox[move.from()] = mailbox[move.to()]; // Update new mailbox position
+			mailbox[move.to()] = NoPiece; // Remove the mailbox piece from it's old position
+			break;
+
+        case CAPTURE:
+            bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.from()) | get_single_bitboard(move.to());; // Update piece position on bitboard
+			bitboards[history.back().capture] ^= get_single_bitboard(move.to()); //Put back the captured piece
+			mailbox[move.from()] = mailbox[move.to()]; // Update new mailbox position
+			mailbox[move.to()] = history.back().capture; // Remove the mailbox piece from it's old position
+            break;
+
+        case DOUBLE_PUSH:
+            bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from()) | get_single_bitboard(move.to()); // Update piece position on bitboard
+			mailbox[move.from()] = makePiece(Pawn, color); // Update new mailbox position
+			mailbox[move.to()] = NoPiece; // Remove the mailbox piece from it's old position
+			break;
+        
+        case EN_PASSANT:
+            //Move the pawn
+            bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from()) | get_single_bitboard(move.to()); // Update piece position on bitboard
+            mailbox[move.from()] = makePiece(Pawn, color); // Update new mailbox position
+			mailbox[move.to()] = NoPiece; // Remove the mailbox piece from it's old position
+
+            //Put back the captured pawn
+            if constexpr (color == WHITE) {
+                bitboards[makePiece(Pawn, ~color)] ^= get_single_bitboard(move.to() - 8);
+                mailbox[move.to() - 8] = makePiece(Pawn, ~color);
+            } else {
+                bitboards[makePiece(Pawn, ~color)] ^= get_single_bitboard(move.to() + 8);
+                mailbox[move.to() + 8] = makePiece(Pawn, ~color);
+            }
+
+            break;
+    }
+
+    history.pop_back();
 
 }
 

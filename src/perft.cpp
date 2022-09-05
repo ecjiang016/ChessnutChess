@@ -3,18 +3,19 @@
 #include <algorithm> 
 
 template<Color color>
-int search(int depth, Chess game, Move move) {
+int search(int depth, Chess *game) {
     if (depth == 0) {
         return 1;
     }
 
-    game.makeMove<~color>(move);
-    std::vector<Move> moves = game.getMoves<color>();
+    std::vector<Move> moves = game->getMoves<color>();
 
     int positions = 0;
 
     for (Move move : moves) {
-        positions += search<~color>(depth-1, game, move);
+        game->makeMove<color>(move);
+        positions += search<~color>(depth-1, game);
+        game->unmakeMove<color>(move);
     }
 
     return positions;
@@ -30,7 +31,10 @@ int search(int depth, Chess game) {
     std::vector<std::string> moves_in_pos;
 
     for (Move move : game.getMoves<color>()) {
-        int move_positions = search<~color>(depth-1, game, move);
+        game.makeMove<color>(move);
+        int move_positions = search<~color>(depth-1, &game);
+        game.unmakeMove<color>(move);
+        
         positions += move_positions;
         moves_in_pos.push_back(move.UCI() + ": " + std::to_string(move_positions));
     }
