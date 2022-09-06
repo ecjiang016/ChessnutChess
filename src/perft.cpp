@@ -3,14 +3,14 @@
 #include <algorithm> 
 
 template<Color color>
-int search(int depth, Chess *game) {
+uint64_t search(int depth, Chess *game) {
     if (depth == 0) {
         return 1;
     }
 
     std::vector<Move> moves = game->getMoves<color>();
 
-    int positions = 0;
+    uint64_t positions = 0;
 
     for (Move move : moves) {
         game->makeMove<color>(move);
@@ -22,17 +22,17 @@ int search(int depth, Chess *game) {
 }
 
 template<Color color>
-int search(int depth, Chess game) {
+uint64_t search(int depth, Chess game) {
     if (depth == 0) {
         return 1;
     }
 
-    int positions = 0;
+    uint64_t positions = 0;
     std::vector<std::string> moves_in_pos;
 
     for (Move move : game.getMoves<color>()) {
         game.makeMove<color>(move);
-        int move_positions = search<~color>(depth-1, &game);
+        uint64_t move_positions = search<~color>(depth-1, &game);
         game.unmakeMove<color>(move);
         
         positions += move_positions;
@@ -60,7 +60,7 @@ int main(int argc, char * argv[]) {
 
     for (int i = 0; i <= depth; i++) {
         auto start = std::chrono::high_resolution_clock::now();
-        int positions = search<WHITE>(i, game);
+        auto positions = search<WHITE>(i, game);
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> sec = end - start;
         std::cout << std::endl << "Depth: " << i << std::endl;
