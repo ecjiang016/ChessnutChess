@@ -164,8 +164,8 @@ constexpr Bitboard castling_pieces() {
 
 template<Color color, Flag flag>
 constexpr Bitboard king_castle_spaces() {
-    return color == WHITE ? (flag == CASTLE_SHORT ? Bitboard(0b01100000) : Bitboard(0b00001100)) :
-        (flag == CASTLE_SHORT ? Bitboard(0b01100000) << 56 : Bitboard(0b00001100) << 56);
+    return color == WHITE ? (flag == CASTLE_SHORT ? Bitboard(0b01100000) : Bitboard(0b00001110)) :
+        (flag == CASTLE_SHORT ? Bitboard(0b01100000) << 56 : Bitboard(0b00001110) << 56);
 }
 
 std::ostream &operator<<(std::ostream &out, Move move);

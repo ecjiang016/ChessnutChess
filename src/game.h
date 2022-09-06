@@ -129,6 +129,46 @@ void Chess::makeMove(Move move) {
 
             break;
 
+        case CASTLE_SHORT:
+            if constexpr (color == WHITE) {
+                bitboards[WhiteKing] ^= Bitboard(0b01010000);
+                bitboards[WhiteRook] ^= Bitboard(0b10100000);
+                mailbox[4] = NoPiece;
+                mailbox[6] = WhiteKing;
+                mailbox[7] = NoPiece;
+                mailbox[5] = WhiteRook;
+                current_history_data.castling |= Bitboard(0b11111111); //Mask out castling for that side
+            } else {
+                bitboards[BlackKing] ^= Bitboard(0x5000000000000000);
+                bitboards[BlackRook] ^= Bitboard(0xA000000000000000);
+                mailbox[60] = NoPiece;
+                mailbox[62] = WhiteKing;
+                mailbox[63] = NoPiece;
+                mailbox[61] = WhiteRook;
+                current_history_data.castling |= Bitboard(0xFF00000000000000); //Mask out castling for that side
+            }
+            break;
+
+        case CASTLE_LONG:
+            if constexpr (color == WHITE) {
+                bitboards[WhiteKing] ^= Bitboard(0b00010100);
+                bitboards[WhiteRook] ^= Bitboard(0b00001001);
+                mailbox[4] = NoPiece;
+                mailbox[2] = WhiteKing;
+                mailbox[0] = NoPiece;
+                mailbox[3] = WhiteRook;
+                current_history_data.castling |= Bitboard(0b11111111);
+            } else {
+                bitboards[BlackKing] ^= Bitboard(0x1400000000000000);
+                bitboards[BlackRook] ^= Bitboard(0x900000000000000);
+                mailbox[60] = NoPiece;
+                mailbox[58] = WhiteKing;
+                mailbox[56] = NoPiece;
+                mailbox[59] = WhiteRook;
+                current_history_data.castling |= Bitboard(0xFF00000000000000);
+            }
+            break;
+
 	}
 
     history.push_back(current_history_data);
@@ -172,6 +212,43 @@ void Chess::unmakeMove(Move move) {
                 mailbox[move.to() + 8] = makePiece(Pawn, ~color);
             }
 
+            break;
+
+        case CASTLE_SHORT:
+            if constexpr (color == WHITE) {
+                bitboards[WhiteKing] ^= Bitboard(0b01010000);
+                bitboards[WhiteRook] ^= Bitboard(0b10100000);
+                mailbox[4] = WhiteKing;
+                mailbox[6] = NoPiece;
+                mailbox[7] = WhiteRook;
+                mailbox[5] = NoPiece;
+            } else {
+                bitboards[BlackKing] ^= Bitboard(0x5000000000000000);
+                bitboards[BlackRook] ^= Bitboard(0xA000000000000000);
+                mailbox[60] = WhiteKing;
+                mailbox[62] = NoPiece;
+                mailbox[63] = WhiteRook;
+                mailbox[61] = NoPiece;
+            }
+            break;
+
+        case CASTLE_LONG:
+            if constexpr (color == WHITE) {
+                bitboards[WhiteKing] ^= Bitboard(0b00010100);
+                bitboards[WhiteRook] ^= Bitboard(0b00001001);
+                mailbox[4] = WhiteKing;
+                mailbox[2] = NoPiece;
+                mailbox[0] = WhiteRook;
+                mailbox[3] = NoPiece;
+
+            } else {
+                bitboards[BlackKing] ^= Bitboard(0x1400000000000000);
+                bitboards[BlackRook] ^= Bitboard(0x900000000000000);
+                mailbox[60] = WhiteKing;
+                mailbox[58] = NoPiece;
+                mailbox[56] = WhiteRook;
+                mailbox[59] = NoPiece;
+            }
             break;
     }
 
@@ -308,10 +385,18 @@ std::vector<Move> Chess::getMoves() const {
             //Castling is possible if ~piece_moved & ~danger which is logically equivalent to ~(piece_moved | danger) or !(piece_moved | danger) to cast to bool
             
             if (!((history.back().castling & castling_pieces<color, CASTLE_SHORT>()) | ((danger | all) & king_castle_spaces<color, CASTLE_SHORT>()))) {
-                legal_moves.push_back(Move(4, 6, CASTLE_SHORT));
+                if constexpr (color == WHITE) {
+                    legal_moves.push_back(Move(4, 6, CASTLE_SHORT));
+                } else {
+                    legal_moves.push_back(Move(60, 62, CASTLE_SHORT));
+                }
             }
             if (!((history.back().castling & castling_pieces<color, CASTLE_LONG>()) | ((danger | all) & king_castle_spaces<color, CASTLE_LONG>()))) {
-                legal_moves.push_back(Move(4, 2, CASTLE_LONG));
+                if constexpr (color == WHITE) {
+                    legal_moves.push_back(Move(4, 2, CASTLE_LONG));
+                } else {
+                    legal_moves.push_back(Move(60, 58, CASTLE_LONG));
+                }
             }
 
 
