@@ -378,25 +378,34 @@ std::vector<Move> Chess::getMoves() const {
             //Castling is only possible when there's no check
             
             //castling_pieces is a mask that includes the white king and the castling rook
-            //king_castle_spaces is a mask that includes the 2 spaces that the king travels through and to when castling
+            //king_castle_spaces is a mask that includes the spaces in between the castling rook and the king
             
             //history.back().castling & castling_pieces will evaluate to 0 if the king and rook haven't moved
             //(danger | all) & king_castle_spaces will evaulate to 0 if the king won't get into check or get blocked on the way it's castle position
             //Castling is possible if ~piece_moved & ~danger which is logically equivalent to ~(piece_moved | danger) or !(piece_moved | danger) to cast to bool
             
-            if (!((history.back().castling & castling_pieces<color, CASTLE_SHORT>()) | ((danger | all) & king_castle_spaces<color, CASTLE_SHORT>()))) {
+            if (!((history.back().castling & castling_pieces<color, CASTLE_SHORT>()) |
+                ((danger | all) & king_castle_spaces<color, CASTLE_SHORT>()))) {
+
                 if constexpr (color == WHITE) {
                     legal_moves.push_back(Move(4, 6, CASTLE_SHORT));
                 } else {
                     legal_moves.push_back(Move(60, 62, CASTLE_SHORT));
                 }
+
             }
-            if (!((history.back().castling & castling_pieces<color, CASTLE_LONG>()) | ((danger | all) & king_castle_spaces<color, CASTLE_LONG>()))) {
+
+            //For long castles, the space where the knight is doesn't have to be clear of checks for castling to be possible
+            //So it gets masked out by intersecting it with ~long_castle_knight<color>()
+            if (!((history.back().castling & castling_pieces<color, CASTLE_LONG>()) |
+                (((danger & ~long_castle_knight<color>()) | all) & king_castle_spaces<color, CASTLE_LONG>()))) {
+
                 if constexpr (color == WHITE) {
                     legal_moves.push_back(Move(4, 2, CASTLE_LONG));
                 } else {
                     legal_moves.push_back(Move(60, 58, CASTLE_LONG));
                 }
+
             }
 
 

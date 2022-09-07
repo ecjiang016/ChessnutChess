@@ -168,4 +168,10 @@ constexpr Bitboard king_castle_spaces() {
         (flag == CASTLE_SHORT ? Bitboard(0b01100000) << 56 : Bitboard(0b00001110) << 56);
 }
 
+//Returns the knight on the long castle side
+template<Color color>
+constexpr Bitboard long_castle_knight() {
+    return color == WHITE ? Bitboard(0b00000010) : Bitboard(0b00000010) << 56;
+}
+
 std::ostream &operator<<(std::ostream &out, Move move);
