@@ -45,3 +45,6 @@ __pycache__/
 # MacOS
 *.DS_Store
 *.dSYM
+
+# Cython generated
+GUI/chess.cpp
