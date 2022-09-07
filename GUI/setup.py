@@ -5,6 +5,7 @@ setup(ext_modules=cythonize(
     Extension(
         "chess",
         ["./GUI/chess.pyx",
+        "./src/masks.cpp",
         "./src/bits.cpp",
         "./src/piece.cpp",
         "./src/game.cpp"
