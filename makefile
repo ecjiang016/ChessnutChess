@@ -12,7 +12,7 @@ all: tool
 tool: $(OBJS)
 	$(CXX) $(CPPFLAGS) $(SRCS) src/perft.cpp -o perft.exe
 
-python:
+cython:
 	$(PY) GUI/setup.py build_ext
 
 clean:
