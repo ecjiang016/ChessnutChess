@@ -1,17 +1,21 @@
-C=gcc
-CXX=g++
+C = gcc
+CXX = g++
 RM = rm -f
-CPPFLAGS=-O3 -std=c++17
+PY = python3
+CPPFLAGS = -O3 -std=c++17
 
-SRCS=$(patsubst %,src/%,game.cpp piece.cpp bits.cpp masks.cpp)
-OBJS=$(subst .cpp,.o,$(SRCS))
+SRCS = $(patsubst %,src/%,game.cpp piece.cpp bits.cpp masks.cpp)
+OBJS = $(subst .cpp,.o,$(SRCS))
 
-all:tool
+all: tool
 
 tool: $(OBJS)
 	$(CXX) $(CPPFLAGS) $(SRCS) src/perft.cpp -o perft.exe
 
+python:
+	$(PY) GUI/setup.py build_ext
+
 clean:
 	$(RM) $(OBJS)
-	$(RM) GUI/*.pyd
+	$(RM) GUI/*.pyd GUI/*.so
 	rm -r build
