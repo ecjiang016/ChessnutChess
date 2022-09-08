@@ -490,17 +490,30 @@ std::vector<Move> Chess::getMoves() const {
 
 	}
 
+    Bitboard promotions;
+
 	//Generate pawn moves
 	if constexpr (color == WHITE) {
 		bb = ((bitboards[WhitePawn] & ~pinned) << 8) & ~all; //Single pawn push
 		moves = ((bb & Bitboard(0xFF0000)) << 8) & quiet_mask; //Double pawn push generated off of single pawn push
         bb &= quiet_mask;
+        promotions = bb & TOP_ROW;
+        bb &= ~TOP_ROW;
 		
 		while (bb) {
 			pos = bitScanForward(bb);
 			legal_moves.push_back(Move(pos - 8, pos));
 			bb &= bb - 1;
 		}
+
+        while (promotions) {
+            pos = bitScanForward(promotions);
+            legal_moves.push_back(Move(pos - 8, pos, PROMOTION_KNIGHT));
+            legal_moves.push_back(Move(pos - 8, pos, PROMOTION_BISHOP));
+            legal_moves.push_back(Move(pos - 8, pos, PROMOTION_ROOK));
+            legal_moves.push_back(Move(pos - 8, pos, PROMOTION_QUEEN));
+            promotions &= promotions - 1;
+        }
 
 		while (moves) {
 			pos = bitScanForward(moves);
@@ -512,12 +525,23 @@ std::vector<Move> Chess::getMoves() const {
 		bb = ((bitboards[BlackPawn] & ~pinned) >> 8) & ~all; //Single pawn push
 		moves = ((bb & Bitboard(0xFF0000000000)) >> 8) & quiet_mask; //Double pawn push generated off of single pawn push
         bb &= quiet_mask;
+        promotions = bb & BOTTOM_ROW;
+        bb &= ~BOTTOM_ROW;
 
 		while (bb) {
 			pos = bitScanForward(bb);
 			legal_moves.push_back(Move(pos + 8, pos));
 			bb &= bb - 1;
 		}
+
+        while (promotions) {
+            pos = bitScanForward(promotions);
+            legal_moves.push_back(Move(pos + 8, pos, PROMOTION_KNIGHT));
+            legal_moves.push_back(Move(pos + 8, pos, PROMOTION_BISHOP));
+            legal_moves.push_back(Move(pos + 8, pos, PROMOTION_ROOK));
+            legal_moves.push_back(Move(pos + 8, pos, PROMOTION_QUEEN));
+            promotions &= promotions - 1;
+        }
 
 		while (moves) {
 			pos = bitScanForward(moves);
@@ -530,16 +554,19 @@ std::vector<Move> Chess::getMoves() const {
 	//Add pawn attacks
 	bb = get_bitboard(Pawn, color) & ~pinned;
     while (bb) {
+        pos = bitScanForward(bb);
         moves = pawn_attacks<color>(bb & -bb);
-        add_moves<CAPTURE>(bitScanForward(bb), moves & capture_mask, legal_moves);
+        add_moves<CAPTURE>(pos, moves & capture_mask & ~promotion_row<color>(), legal_moves);
+        add_moves<PROMOTION>(pos, moves & capture_mask & promotion_row<color>(), legal_moves);
+
         //Handle en passants
         if constexpr (color == WHITE) {
             if ((moves >> 8) & get_single_bitboard(history.back().en_passant_square)) {
-                legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per piece
+                legal_moves.push_back(Move(pos, history.back().en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per piece
             }
         } else {
             if ((moves << 8) & get_single_bitboard(history.back().en_passant_square)) {
-                legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per piece
+                legal_moves.push_back(Move(pos, history.back().en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per piece
             }
         }
         bb &= bb - 1;
