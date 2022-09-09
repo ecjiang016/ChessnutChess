@@ -131,7 +131,7 @@ cdef class Chess:
 
         return False
 
-    def makeMove(self, old_x, old_y, new_x, new_y):
+    def makeMove(self, old_x, old_y, new_x, new_y, promotion = None):
         old_c = coords_2D_to_1D(old_x, old_y)
         new_c = coords_2D_to_1D(new_x, new_y)
         cdef vector[Move] allMoves = self.cobj.getMoves_white() if self.color == WHITE else self.cobj.getMoves_black()
@@ -139,7 +139,17 @@ cdef class Chess:
         for i in range(allMoves.size()):
             move = allMoves[i]
             if move.from_() == old_c and move.to() == new_c:
-                break
+                if promotion == None:
+                    break
+                else:
+                    if promotion.lower() == 'n' and (move.flag() == PROMOTION_KNIGHT or move.flag() == PROMOTION_CAPTURE_KNIGHT):
+                        break
+                    elif promotion.lower() == 'b' and (move.flag() == PROMOTION_BISHOP or move.flag() == PROMOTION_CAPTURE_BISHOP):
+                        break
+                    elif promotion.lower() == 'r' and (move.flag() == PROMOTION_ROOK or move.flag() == PROMOTION_CAPTURE_ROOK):
+                        break
+                    elif promotion.lower() == 'q' and (move.flag() == PROMOTION_QUEEN or move.flag() == PROMOTION_CAPTURE_QUEEN):
+                        break
 
         if self.color == WHITE:
             self.cobj.makeMove_white(move)
