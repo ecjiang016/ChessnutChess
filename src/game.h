@@ -169,6 +169,57 @@ void Chess::makeMove(Move move) {
             }
             break;
 
+        case PROMOTION_CAPTURE_KNIGHT:
+            //Only includes the special code to handle the capture
+            bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to());
+            current_history_data.capture = mailbox[move.to()]; //Save the captured piece to the history
+            //The pawn could capture a rook which would disable castling on that side
+            current_history_data.castling |= get_single_bitboard(move.to());
+            //Intentionally no break to also run the normal promotion code
+
+        case PROMOTION_KNIGHT:
+            bitboards[makePiece(Knight, color)] ^= get_single_bitboard(move.to()); //Make a new piece
+            bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from()); //Remove the old pawn
+            mailbox[move.from()] = NoPiece; //Update mailbox
+            mailbox[move.to()] = makePiece(Knight, color);
+            break;
+
+        case PROMOTION_CAPTURE_BISHOP:
+            bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to());
+            current_history_data.capture = mailbox[move.to()]; 
+            current_history_data.castling |= get_single_bitboard(move.to());
+
+        case PROMOTION_BISHOP:
+            bitboards[makePiece(Bishop, color)] ^= get_single_bitboard(move.to());
+            bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from());
+            mailbox[move.from()] = NoPiece;
+            mailbox[move.to()] = makePiece(Bishop, color);
+            break;
+
+        case PROMOTION_CAPTURE_ROOK:
+            bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to());
+            current_history_data.capture = mailbox[move.to()]; 
+            current_history_data.castling |= get_single_bitboard(move.to());
+            
+        case PROMOTION_ROOK:
+            bitboards[makePiece(Rook, color)] ^= get_single_bitboard(move.to());
+            bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from());
+            mailbox[move.from()] = NoPiece;
+            mailbox[move.to()] = makePiece(Rook, color);
+            break;
+
+        case PROMOTION_CAPTURE_QUEEN:
+            bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to());
+            current_history_data.capture = mailbox[move.to()]; 
+            current_history_data.castling |= get_single_bitboard(move.to());
+
+        case PROMOTION_QUEEN:
+            bitboards[makePiece(Queen, color)] ^= get_single_bitboard(move.to());
+            bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from());
+            mailbox[move.from()] = NoPiece;
+            mailbox[move.to()] = makePiece(Queen, color);
+            break;
+
 	}
 
     history.push_back(current_history_data);
@@ -250,6 +301,22 @@ void Chess::unmakeMove(Move move) {
                 mailbox[59] = NoPiece;
             }
             break;
+
+        case PROMOTION_KNIGHT: case PROMOTION_BISHOP: case PROMOTION_ROOK: case PROMOTION_QUEEN:
+            bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from()); //Put pawn back to old position
+            bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to()); //Remove the piece the pawn promoted to
+            mailbox[move.from()] = makePiece(Pawn, color); //Update the mailbox
+            mailbox[move.to()] = NoPiece;
+            break;
+
+        case PROMOTION_CAPTURE_KNIGHT: case PROMOTION_CAPTURE_BISHOP:
+        case PROMOTION_CAPTURE_ROOK: case PROMOTION_CAPTURE_QUEEN:
+            bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from()); //Put pawn back to old position
+            mailbox[move.from()] = makePiece(Pawn, color);
+            bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to()); //Remove the piece the pawn promoted to
+            bitboards[history.back().capture] ^= get_single_bitboard(move.to()); //Put back captured piece
+            mailbox[move.to()] = history.back().capture;
+
     }
 
     history.pop_back();
