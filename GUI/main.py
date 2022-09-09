@@ -54,7 +54,6 @@ def coords_to_mask(moves) -> np.ndarray:
 
 def create_background_board(moves_list, selected_piece, piece, sy):
     board = pygame.Surface((WINDOW_SIZE, WINDOW_SIZE))
-    print(sy)
     for y in range(8):
         for x in range(8):
             rect = pygame.Rect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE)
@@ -258,9 +257,8 @@ def main(fen=""):
                     new_x, new_y = drop_pos
                     if game.checkLegalMove(selected_x, selected_y, new_x, new_y):
                         piece, old_x, old_y = selected_piece
-                        while (piece == 1 and new_y == 0) or (piece == -1 and new_y == 7):
+                        while (piece == 1 and new_y == 0) or (piece == -1 and new_y == 7): #Freezes the GUI for moves so that a promotion piece can be picked on GUI
                             board_surface = create_background_board(move_list, selected_piece, piece, new_y)
-                            promote = True
                             if event.type == pygame.QUIT:
                                 return
 
@@ -271,11 +269,16 @@ def main(fen=""):
 
                             elif event.type == pygame.MOUSEBUTTONUP:
                                 
-                                if (x == new_x and y == 0) or (x == new_x and y == 7):
+                                if x == new_x and (y == 0 or y == 7):
                                     promotion_type = 5
-                                if (x == new_x and y == 0) or (x == new_x and y == 7):
-                                    promotion_type = 5
+                                elif x == new_x and (y == 1 or y == 6):
+                                    promotion_type = 4
+                                elif x == new_x and (y == 2 or y == 5):
+                                    promotion_type = 3
+                                elif x == new_x and (y == 3 or y == 4):
+                                    promotion_type = 2
                                 game.makeMove(selected_x, selected_y, new_x, new_y, promotion_type)
+                                print(promotion_type)
                             #promote = ""
                             #while promote.upper() not in ["Q", "N", "R", "B"]:
                             #    promote = input("Promote to Q, R, B, or N: ")
