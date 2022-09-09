@@ -142,9 +142,9 @@ void Chess::makeMove(Move move) {
                 bitboards[BlackKing] ^= Bitboard(0x5000000000000000);
                 bitboards[BlackRook] ^= Bitboard(0xA000000000000000);
                 mailbox[60] = NoPiece;
-                mailbox[62] = WhiteKing;
+                mailbox[62] = BlackKing;
                 mailbox[63] = NoPiece;
-                mailbox[61] = WhiteRook;
+                mailbox[61] = BlackRook;
                 current_history_data.castling |= Bitboard(0xFF00000000000000); //Mask out castling for that side
             }
             break;
@@ -162,9 +162,9 @@ void Chess::makeMove(Move move) {
                 bitboards[BlackKing] ^= Bitboard(0x1400000000000000);
                 bitboards[BlackRook] ^= Bitboard(0x900000000000000);
                 mailbox[60] = NoPiece;
-                mailbox[58] = WhiteKing;
+                mailbox[58] = BlackKing;
                 mailbox[56] = NoPiece;
-                mailbox[59] = WhiteRook;
+                mailbox[59] = BlackRook;
                 current_history_data.castling |= Bitboard(0xFF00000000000000);
             }
             break;
@@ -225,9 +225,9 @@ void Chess::unmakeMove(Move move) {
             } else {
                 bitboards[BlackKing] ^= Bitboard(0x5000000000000000);
                 bitboards[BlackRook] ^= Bitboard(0xA000000000000000);
-                mailbox[60] = WhiteKing;
+                mailbox[60] = BlackKing;
                 mailbox[62] = NoPiece;
-                mailbox[63] = WhiteRook;
+                mailbox[63] = BlackRook;
                 mailbox[61] = NoPiece;
             }
             break;
@@ -244,9 +244,9 @@ void Chess::unmakeMove(Move move) {
             } else {
                 bitboards[BlackKing] ^= Bitboard(0x1400000000000000);
                 bitboards[BlackRook] ^= Bitboard(0x900000000000000);
-                mailbox[60] = WhiteKing;
+                mailbox[60] = BlackKing;
                 mailbox[58] = NoPiece;
-                mailbox[56] = WhiteRook;
+                mailbox[56] = BlackRook;
                 mailbox[59] = NoPiece;
             }
             break;
