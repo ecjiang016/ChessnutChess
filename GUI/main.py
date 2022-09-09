@@ -52,7 +52,7 @@ def coords_to_mask(moves) -> np.ndarray:
     out[moves] = 1
     return out.reshape(8, 8)
 
-def create_background_board(moves_list, selected_piece, piece, sy):
+def create_background_board(moves_list, selected_piece, piece, sx, sy = None):
     board = pygame.Surface((WINDOW_SIZE, WINDOW_SIZE))
     for y in range(8):
         for x in range(8):
@@ -72,8 +72,11 @@ def create_background_board(moves_list, selected_piece, piece, sy):
             if x == selected_piece[1] and y == selected_piece[2]:
                 color = pygame.Color(227, 11, 92) #Selected piece color
             
-            if piece != None and abs(piece) == 1 and (sy == 0 or sy == 7) and sy == y:
-                color = pygame.Color(42, 165, 42) #Promotion color (green)
+            if piece != None and abs(piece) == 1 and (sy == 0 or sy == 7) and sx == x:
+                if piece == 1 and y <= 3: #For white promotion
+                    color = pygame.Color(42, 165, 42) #Promotion color (green)
+                if piece == -1 and y >= 4: #For Black promotion
+                    color = pygame.Color(42, 165, 42) #Promotion color (green)
             pygame.draw.rect(board, color, rect)
 
     return board
@@ -101,33 +104,28 @@ def draw_pieces(screen, board, selected_piece):
 
     for y in range(8):
         for x in range(8):
-            piece = board[y, x]
-            if abs(piece) == 1 and (y == 0 or y == 7):
-                selected = (x == sx and y == sy)
-                img = images[-5 if piece < 0 else 4]
-                pieces[piece].center = (x * 100 + 50), (y * 100 + 50)
-                if not selected:
-                    screen.blit(img, pieces[piece])
-                img = images[-4 if piece < 0 else 3]
-                pieces[piece].center = (x * 100 + 50), ((y+piece) * 100 + 50)
-                if not selected:
-                    screen.blit(img, pieces[piece])
-                img = images[-3 if piece < 0 else 2]
-                pieces[piece].center = (x * 100 + 50), ((y+2*piece) * 100 + 50)
-                if not selected:
-                    screen.blit(img, pieces[piece])
-                img = images[-2 if piece < 0 else 1]
-                pieces[piece].center = (x * 100 + 50), ((y+3*piece) * 100 + 50)
-                if not selected:
-                    screen.blit(img, pieces[piece])
-                
-            elif piece:
+            piece = board[y, x]                
+            if piece:
                 selected = (x == sx and y == sy)
                 piece = piece if piece < 0 else piece - 1
                 img = images[piece]
                 pieces[piece].center = (x * 100 + 50), (y * 100 + 50)
                 if not selected:
                     screen.blit(img, pieces[piece])
+
+def draw_promotion_pieces(screen, pawn_pos):
+    x, y = pawn_pos
+
+    if y == 0:
+        for i in range(4, 0, -1):
+            img = images[i]
+            pieces[i].center = (x * 100 + 50), ((4 - i) * 100 + 50)
+            screen.blit(img, pieces[i])
+    else:
+        for i in range(4, 0, -1):
+            img = images[i]
+            pieces[i].center = (x * 100 + 50), ((3 + i) * 100 + 50)
+            screen.blit(img, pieces[i])
 
 def draw_drag(screen, board, selected_piece):
     if selected_piece[0]:
@@ -237,8 +235,7 @@ def main(fen=""):
     while True:
         piece, x, y = get_square_under_mouse(game_board)
         selected_x, selected_y = selected_piece[1:3]
-        if promote == False:
-            board_surface = create_background_board(move_list, selected_piece, piece, y)
+        board_surface = create_background_board(move_list, selected_piece, piece, x, y)
 
         events = pygame.event.get()
         for event in events:
@@ -266,27 +263,46 @@ def main(fen=""):
                     if game.checkLegalMove(selected_x, selected_y, new_x, new_y):
                         piece, old_x, old_y = selected_piece
                         while (piece == 1 and new_y == 0) or (piece == -1 and new_y == 7): #Freezes the GUI for moves so that a promotion piece can be picked on GUI
-                            board_surface = create_background_board(move_list, selected_piece, piece, new_y)
-                            if event.type == pygame.QUIT:
-                                return
+                            pevents = pygame.event.get()
+                            board_surface = create_background_board(move_list, selected_piece, piece, new_x, new_y)
+                            for pevent in pevents:
+                                if pevent.type == pygame.QUIT:
+                                    return
 
-                            elif event.type == pygame.MOUSEBUTTONDOWN:
-                                #print((np.sign(piece) < 0) == game.color)
-                                if piece and (np.sign(piece) < 0) == game.color:
-                                    selected_piece = piece, x, y
+                                elif pevent.type == pygame.MOUSEBUTTONDOWN:
+                                    #print((np.sign(piece) < 0) == game.color)
+                                    if piece and (np.sign(piece) < 0) == game.color:
+                                        selected_piece = piece, x, y
+                                    if x == new_x and (y == 0 or y == 7):
+                                        promotion_type = 'q'
+                                        game.makeMove(selected_x, selected_y, new_x, new_y, promotion_type)
+                                        piece = None
+                                    elif x == new_x and (y == 1 or y == 6):
+                                        promotion_type = 'r'
+                                        game.makeMove(selected_x, selected_y, new_x, new_y, promotion_type)
+                                        piece = None
+                                    elif x == new_x and (y == 2 or y == 5):
+                                        promotion_type = 'b'
+                                        game.makeMove(selected_x, selected_y, new_x, new_y, promotion_type)
+                                        piece = None
+                                    elif x == new_x and (y == 3 or y == 4):
+                                        promotion_type = 'n'
+                                        game.makeMove(selected_x, selected_y, new_x, new_y, promotion_type)
+                                        piece = None
 
-                            elif event.type == pygame.MOUSEBUTTONUP:
-                                
-                                if x == new_x and (y == 0 or y == 7):
-                                    promotion_type = 5
-                                elif x == new_x and (y == 1 or y == 6):
-                                    promotion_type = 4
-                                elif x == new_x and (y == 2 or y == 5):
-                                    promotion_type = 3
-                                elif x == new_x and (y == 3 or y == 4):
-                                    promotion_type = 2
-                                game.makeMove(selected_x, selected_y, new_x, new_y, promotion_type)
-                                print(promotion_type)
+
+                                elif pevent.type == pygame.MOUSEBUTTONUP:
+                                    pass
+
+                            screen.fill(pygame.Color('grey'))
+
+                            screen.blit(board_surface, (0, 0))
+                            draw_pieces(screen, game_board, selected_piece)
+                            draw_promotion_pieces(screen, (new_x, new_y))
+
+                            pygame.display.flip()
+                            clock.tick(60)
+
                             #promote = ""
                             #while promote.upper() not in ["Q", "N", "R", "B"]:
                             #    promote = input("Promote to Q, R, B, or N: ")
