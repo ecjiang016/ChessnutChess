@@ -52,9 +52,9 @@ def coords_to_mask(moves) -> np.ndarray:
     out[moves] = 1
     return out.reshape(8, 8)
 
-def create_background_board(moves_list, selected_piece):
+def create_background_board(moves_list, selected_piece, piece, sy):
     board = pygame.Surface((WINDOW_SIZE, WINDOW_SIZE))
-
+    print(sy)
     for y in range(8):
         for x in range(8):
             rect = pygame.Rect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE)
@@ -73,7 +73,8 @@ def create_background_board(moves_list, selected_piece):
             if x == selected_piece[1] and y == selected_piece[2]:
                 color = pygame.Color(227, 11, 92) #Selected piece color
             
-
+            if piece != None and abs(piece) == 1 and (sy == 0 or sy == 7) and sy == y:
+                color = pygame.Color(42, 165, 42) #Promotion color (green)
             pygame.draw.rect(board, color, rect)
 
     return board
@@ -102,7 +103,26 @@ def draw_pieces(screen, board, selected_piece):
     for y in range(8):
         for x in range(8):
             piece = board[y, x]
-            if piece:
+            if abs(piece) == 1 and (y == 0 or y == 7):
+                selected = (x == sx and y == sy)
+                img = images[-5 if piece < 0 else 4]
+                pieces[piece].center = (x * 100 + 50), (y * 100 + 50)
+                if not selected:
+                    screen.blit(img, pieces[piece])
+                img = images[-4 if piece < 0 else 3]
+                pieces[piece].center = (x * 100 + 50), ((y+piece) * 100 + 50)
+                if not selected:
+                    screen.blit(img, pieces[piece])
+                img = images[-3 if piece < 0 else 2]
+                pieces[piece].center = (x * 100 + 50), ((y+2*piece) * 100 + 50)
+                if not selected:
+                    screen.blit(img, pieces[piece])
+                img = images[-2 if piece < 0 else 1]
+                pieces[piece].center = (x * 100 + 50), ((y+3*piece) * 100 + 50)
+                if not selected:
+                    screen.blit(img, pieces[piece])
+                
+            elif piece:
                 selected = (x == sx and y == sy)
                 piece = piece if piece < 0 else piece - 1
                 img = images[piece]
@@ -159,7 +179,8 @@ def single_move(game):
         piece, x, y = get_square_under_mouse(np.array(game.board).reshape(8, 8))
         selected_x, selected_y = selected_piece[1:3]
         piece_moves = coords_to_mask(game.get_moves(coords_2D_to_1D(selected_x, selected_y), game.player_color))
-        board_surface = create_background_board(piece_moves, selected_piece)
+        if promote == True:
+            board_surface = create_background_board(piece_moves, selected_piece)
 
         events = pygame.event.get()
         for event in events:
@@ -175,15 +196,14 @@ def single_move(game):
                     new_x, new_y = drop_pos
                     if piece_moves[new_y, new_x] == 1:
                         piece, old_x, old_y = selected_piece
-                        promote = None
                         if (piece == 1 and new_y == 0) or (piece == -1 and new_y == 7):
-                            promote = ""
-                            while promote.upper() not in ["Q", "N", "R", "B"]:
-                                promote = input("Promote to Q, R, B, or N: ")
-
-                            promote = {"Q":5, "N":2, "R":4, "B":3}[promote.upper()]
+                            promote = False
+                            #while promote.upper() not in ["Q", "N", "R", "B"]:
+                            #    promote = input("Promote to Q, R, B, or N: ")
+#
+                            #promote = {"Q":5, "N":2, "R":4, "B":3}[promote.upper()]
                             
-                        game.move(coords_2D_to_1D(old_x, old_y), coords_2D_to_1D(new_x, new_y), promote)
+                        #game.move(coords_2D_to_1D(old_x, old_y), coords_2D_to_1D(new_x, new_y), promote)
                         return game
 
                 selected_piece = 0, -1, -1
@@ -207,16 +227,19 @@ def main(fen=""):
 
     screen = pygame.display.set_mode((WINDOW_SIZE, WINDOW_SIZE))
     clock = pygame.time.Clock()
-    board_surface = create_background_board(np.zeros((8, 8)), (0, 0, 0))
-    selected_piece = 0, -1, -1
     game_board = game.createBoard()
+    piece, x, y = get_square_under_mouse(game_board)
+    board_surface = create_background_board(np.zeros((8, 8)), (0, 0, 0), piece, y)
+    selected_piece = 0, -1, -1
     move_list = []
     drop_pos = None
+    promote = False
 
     while True:
         piece, x, y = get_square_under_mouse(game_board)
         selected_x, selected_y = selected_piece[1:3]
-        board_surface = create_background_board(move_list, selected_piece)
+        if promote == False:
+            board_surface = create_background_board(move_list, selected_piece, piece, y)
 
         events = pygame.event.get()
         for event in events:
@@ -230,17 +253,34 @@ def main(fen=""):
                     move_list = game.pieceMoves(x, y)
 
             elif event.type == pygame.MOUSEBUTTONUP:
+
                 if drop_pos:
                     new_x, new_y = drop_pos
                     if game.checkLegalMove(selected_x, selected_y, new_x, new_y):
                         piece, old_x, old_y = selected_piece
-                        promote = None
-                        if (piece == 1 and new_y == 0) or (piece == -1 and new_y == 7):
-                            promote = ""
-                            while promote.upper() not in ["Q", "N", "R", "B"]:
-                                promote = input("Promote to Q, R, B, or N: ")
+                        while (piece == 1 and new_y == 0) or (piece == -1 and new_y == 7):
+                            board_surface = create_background_board(move_list, selected_piece, piece, new_y)
+                            promote = True
+                            if event.type == pygame.QUIT:
+                                return
 
-                            promote = {"Q":5, "N":2, "R":4, "B":3}[promote.upper()]
+                            elif event.type == pygame.MOUSEBUTTONDOWN:
+                                #print((np.sign(piece) < 0) == game.color)
+                                if piece and (np.sign(piece) < 0) == game.color:
+                                    selected_piece = piece, x, y
+
+                            elif event.type == pygame.MOUSEBUTTONUP:
+                                
+                                if (x == new_x and y == 0) or (x == new_x and y == 7):
+                                    promotion_type = 5
+                                if (x == new_x and y == 0) or (x == new_x and y == 7):
+                                    promotion_type = 5
+                                game.makeMove(selected_x, selected_y, new_x, new_y, promotion_type)
+                            #promote = ""
+                            #while promote.upper() not in ["Q", "N", "R", "B"]:
+                            #    promote = input("Promote to Q, R, B, or N: ")
+#
+                            #promote = {"Q":5, "N":2, "R":4, "B":3}[promote.upper()]
                             
                         game.makeMove(selected_x, selected_y, new_x, new_y)
                         game_board = game.createBoard()
