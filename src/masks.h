@@ -22,3 +22,10 @@ extern const Bitboard all_direction_masks[64];
 extern const Bitboard directional_masks[64][8];
 extern const Bitboard connecting_masks[64][64];
 extern const Bitboard ray_masks[64][64];
+
+enum Color : uint8_t;
+
+template<Color color>
+constexpr Bitboard promotion_row() {
+    return color == Color(0) ? TOP_ROW : BOTTOM_ROW;
+}

@@ -53,8 +53,10 @@ cdef extern from "../src/game.h":
 
         vector[Move] getMoves_white "getMoves<WHITE>"()
         vector[Move] getMoves_black "getMoves<BLACK>"()
-        vector[Move] makeMove_white "makeMove<WHITE>"(Move move)
-        vector[Move] makeMove_black "makeMove<BLACK>"(Move move)
+        void makeMove_white "makeMove<WHITE>"(Move move)
+        void makeMove_black "makeMove<BLACK>"(Move move)
+        void unmakeMove_white "unmakeMove<WHITE>"(Move move)
+        void unmakeMove_black "unmakeMove<BLACK>"(Move move)
         vector[Piece] getMailbox()
         void csetFen "setFen"(string fen)
 
@@ -64,9 +66,11 @@ def coords_2D_to_1D(x, y):
 cdef class Chess:
     cdef cChess *cobj
     cdef Color color
+    cdef Move last_move #For undoing moves
     def __cinit__(self):
         self.cobj = new cChess()
         self.color = WHITE
+        self.last_move = Move()
 
     property color:
         def __set__(self, val):
@@ -129,6 +133,16 @@ cdef class Chess:
             self.color = BLACK
         else:
             self.cobj.makeMove_black(move)
+            self.color = WHITE
+
+        self.last_move = move #Cache for unmake
+
+    def unmakeMove(self):
+        if self.color == WHITE:
+            self.cobj.unmakeMove_black(self.last_move)
+            self.color = BLACK
+        else:
+            self.cobj.unmakeMove_white(self.last_move)
             self.color = WHITE
 
     #@cython.boundscheck(False)  # Deactivate bounds checking

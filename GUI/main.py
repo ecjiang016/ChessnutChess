@@ -245,6 +245,14 @@ def main(fen=""):
             if event.type == pygame.QUIT:
                 return
 
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_m:
+                    print(game.getAllMoves(), end=" ")
+                    print(len(game.getAllMoves()))
+                elif event.key == pygame.K_z:
+                    game.unmakeMove()
+                    game_board = game.createBoard()
+
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 #print((np.sign(piece) < 0) == game.color)
                 if piece and (np.sign(piece) < 0) == game.color:
@@ -307,4 +315,4 @@ def main(fen=""):
         #    return
 
 if __name__ == '__main__':
-    main("")
+    main("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R")

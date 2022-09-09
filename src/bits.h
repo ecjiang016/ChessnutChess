@@ -5,44 +5,7 @@
 
 typedef uint64_t Bitboard;
 
-//Byte swap stuff
-#ifdef _MSC_VER
-
-#include <stdlib.h>
-#define bswap_64(x) _byteswap_uint64(x)
-/*
-#elif defined(__APPLE__)
-
-// Mac OS X / Darwin features
-#include <libkern/OSByteOrder.h>
-#define bswap_64(x) OSSwapInt64(x)
-*/
-#elif defined(__sun) || defined(sun)
-
-#include <sys/byteorder.h>
-#define bswap_64(x) BSWAP_64(x)
-
-#elif defined(__FreeBSD__)
-
-#include <sys/endian.h>
-#define bswap_64(x) bswap64(x)
-
-#elif defined(__OpenBSD__)
-
-#include <sys/types.h>
-#define bswap_64(x) swap64(x)
-
-#elif defined(__NetBSD__)
-
-#include <sys/types.h>
-#include <machine/bswap.h>
-#if defined(__BSWAP_RENAME) && !defined(__bswap_32)
-#define bswap_64(x) bswap64(x)
-#endif
-
-#else
-
-inline unsigned long long bswap_64(unsigned long long bb) {
+inline Bitboard bswap_64(Bitboard bb) {
     bb = (bb & 0x5555555555555555) << 1 | ((bb >> 1) & 0x5555555555555555);
     bb = (bb & 0x3333333333333333) << 2 | ((bb >> 2) & 0x3333333333333333);
     bb = (bb & 0x0f0f0f0f0f0f0f0f) << 4 | ((bb >> 4) & 0x0f0f0f0f0f0f0f0f);
@@ -50,10 +13,6 @@ inline unsigned long long bswap_64(unsigned long long bb) {
 
     return (bb << 48) | ((bb & 0xffff0000) << 16) | ((bb >> 16) & 0xffff0000) | (bb >> 48);
 }
-
-#endif
-
-//#define check_bit(var, bit_num) (var & (uint64_t(1) << bit_num))
 
 /**
  * Returns false if bit at bit_num is 0, othewise returns true

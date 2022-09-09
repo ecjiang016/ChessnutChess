@@ -142,9 +142,9 @@ void Chess::makeMove(Move move) {
                 bitboards[BlackKing] ^= Bitboard(0x5000000000000000);
                 bitboards[BlackRook] ^= Bitboard(0xA000000000000000);
                 mailbox[60] = NoPiece;
-                mailbox[62] = WhiteKing;
+                mailbox[62] = BlackKing;
                 mailbox[63] = NoPiece;
-                mailbox[61] = WhiteRook;
+                mailbox[61] = BlackRook;
                 current_history_data.castling |= Bitboard(0xFF00000000000000); //Mask out castling for that side
             }
             break;
@@ -162,11 +162,62 @@ void Chess::makeMove(Move move) {
                 bitboards[BlackKing] ^= Bitboard(0x1400000000000000);
                 bitboards[BlackRook] ^= Bitboard(0x900000000000000);
                 mailbox[60] = NoPiece;
-                mailbox[58] = WhiteKing;
+                mailbox[58] = BlackKing;
                 mailbox[56] = NoPiece;
-                mailbox[59] = WhiteRook;
+                mailbox[59] = BlackRook;
                 current_history_data.castling |= Bitboard(0xFF00000000000000);
             }
+            break;
+
+        case PROMOTION_CAPTURE_KNIGHT:
+            //Only includes the special code to handle the capture
+            bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to());
+            current_history_data.capture = mailbox[move.to()]; //Save the captured piece to the history
+            //The pawn could capture a rook which would disable castling on that side
+            current_history_data.castling |= get_single_bitboard(move.to());
+            //Intentionally no break to also run the normal promotion code
+
+        case PROMOTION_KNIGHT:
+            bitboards[makePiece(Knight, color)] ^= get_single_bitboard(move.to()); //Make a new piece
+            bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from()); //Remove the old pawn
+            mailbox[move.from()] = NoPiece; //Update mailbox
+            mailbox[move.to()] = makePiece(Knight, color);
+            break;
+
+        case PROMOTION_CAPTURE_BISHOP:
+            bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to());
+            current_history_data.capture = mailbox[move.to()]; 
+            current_history_data.castling |= get_single_bitboard(move.to());
+
+        case PROMOTION_BISHOP:
+            bitboards[makePiece(Bishop, color)] ^= get_single_bitboard(move.to());
+            bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from());
+            mailbox[move.from()] = NoPiece;
+            mailbox[move.to()] = makePiece(Bishop, color);
+            break;
+
+        case PROMOTION_CAPTURE_ROOK:
+            bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to());
+            current_history_data.capture = mailbox[move.to()]; 
+            current_history_data.castling |= get_single_bitboard(move.to());
+            
+        case PROMOTION_ROOK:
+            bitboards[makePiece(Rook, color)] ^= get_single_bitboard(move.to());
+            bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from());
+            mailbox[move.from()] = NoPiece;
+            mailbox[move.to()] = makePiece(Rook, color);
+            break;
+
+        case PROMOTION_CAPTURE_QUEEN:
+            bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to());
+            current_history_data.capture = mailbox[move.to()]; 
+            current_history_data.castling |= get_single_bitboard(move.to());
+
+        case PROMOTION_QUEEN:
+            bitboards[makePiece(Queen, color)] ^= get_single_bitboard(move.to());
+            bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from());
+            mailbox[move.from()] = NoPiece;
+            mailbox[move.to()] = makePiece(Queen, color);
             break;
 
 	}
@@ -225,9 +276,9 @@ void Chess::unmakeMove(Move move) {
             } else {
                 bitboards[BlackKing] ^= Bitboard(0x5000000000000000);
                 bitboards[BlackRook] ^= Bitboard(0xA000000000000000);
-                mailbox[60] = WhiteKing;
+                mailbox[60] = BlackKing;
                 mailbox[62] = NoPiece;
-                mailbox[63] = WhiteRook;
+                mailbox[63] = BlackRook;
                 mailbox[61] = NoPiece;
             }
             break;
@@ -244,12 +295,28 @@ void Chess::unmakeMove(Move move) {
             } else {
                 bitboards[BlackKing] ^= Bitboard(0x1400000000000000);
                 bitboards[BlackRook] ^= Bitboard(0x900000000000000);
-                mailbox[60] = WhiteKing;
+                mailbox[60] = BlackKing;
                 mailbox[58] = NoPiece;
-                mailbox[56] = WhiteRook;
+                mailbox[56] = BlackRook;
                 mailbox[59] = NoPiece;
             }
             break;
+
+        case PROMOTION_KNIGHT: case PROMOTION_BISHOP: case PROMOTION_ROOK: case PROMOTION_QUEEN:
+            bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from()); //Put pawn back to old position
+            bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to()); //Remove the piece the pawn promoted to
+            mailbox[move.from()] = makePiece(Pawn, color); //Update the mailbox
+            mailbox[move.to()] = NoPiece;
+            break;
+
+        case PROMOTION_CAPTURE_KNIGHT: case PROMOTION_CAPTURE_BISHOP:
+        case PROMOTION_CAPTURE_ROOK: case PROMOTION_CAPTURE_QUEEN:
+            bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from()); //Put pawn back to old position
+            mailbox[move.from()] = makePiece(Pawn, color);
+            bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to()); //Remove the piece the pawn promoted to
+            bitboards[history.back().capture] ^= get_single_bitboard(move.to()); //Put back captured piece
+            mailbox[move.to()] = history.back().capture;
+
     }
 
     history.pop_back();
@@ -490,17 +557,30 @@ std::vector<Move> Chess::getMoves() const {
 
 	}
 
+    Bitboard promotions;
+
 	//Generate pawn moves
 	if constexpr (color == WHITE) {
 		bb = ((bitboards[WhitePawn] & ~pinned) << 8) & ~all; //Single pawn push
 		moves = ((bb & Bitboard(0xFF0000)) << 8) & quiet_mask; //Double pawn push generated off of single pawn push
         bb &= quiet_mask;
+        promotions = bb & TOP_ROW;
+        bb &= ~TOP_ROW;
 		
 		while (bb) {
 			pos = bitScanForward(bb);
 			legal_moves.push_back(Move(pos - 8, pos));
 			bb &= bb - 1;
 		}
+
+        while (promotions) {
+            pos = bitScanForward(promotions);
+            legal_moves.push_back(Move(pos - 8, pos, PROMOTION_KNIGHT));
+            legal_moves.push_back(Move(pos - 8, pos, PROMOTION_BISHOP));
+            legal_moves.push_back(Move(pos - 8, pos, PROMOTION_ROOK));
+            legal_moves.push_back(Move(pos - 8, pos, PROMOTION_QUEEN));
+            promotions &= promotions - 1;
+        }
 
 		while (moves) {
 			pos = bitScanForward(moves);
@@ -512,12 +592,23 @@ std::vector<Move> Chess::getMoves() const {
 		bb = ((bitboards[BlackPawn] & ~pinned) >> 8) & ~all; //Single pawn push
 		moves = ((bb & Bitboard(0xFF0000000000)) >> 8) & quiet_mask; //Double pawn push generated off of single pawn push
         bb &= quiet_mask;
+        promotions = bb & BOTTOM_ROW;
+        bb &= ~BOTTOM_ROW;
 
 		while (bb) {
 			pos = bitScanForward(bb);
 			legal_moves.push_back(Move(pos + 8, pos));
 			bb &= bb - 1;
 		}
+
+        while (promotions) {
+            pos = bitScanForward(promotions);
+            legal_moves.push_back(Move(pos + 8, pos, PROMOTION_KNIGHT));
+            legal_moves.push_back(Move(pos + 8, pos, PROMOTION_BISHOP));
+            legal_moves.push_back(Move(pos + 8, pos, PROMOTION_ROOK));
+            legal_moves.push_back(Move(pos + 8, pos, PROMOTION_QUEEN));
+            promotions &= promotions - 1;
+        }
 
 		while (moves) {
 			pos = bitScanForward(moves);
@@ -530,16 +621,19 @@ std::vector<Move> Chess::getMoves() const {
 	//Add pawn attacks
 	bb = get_bitboard(Pawn, color) & ~pinned;
     while (bb) {
+        pos = bitScanForward(bb);
         moves = pawn_attacks<color>(bb & -bb);
-        add_moves<CAPTURE>(bitScanForward(bb), moves & capture_mask, legal_moves);
+        add_moves<CAPTURE>(pos, moves & capture_mask & ~promotion_row<color>(), legal_moves);
+        add_moves<PROMOTION>(pos, moves & capture_mask & promotion_row<color>(), legal_moves);
+
         //Handle en passants
         if constexpr (color == WHITE) {
             if ((moves >> 8) & get_single_bitboard(history.back().en_passant_square)) {
-                legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per piece
+                legal_moves.push_back(Move(pos, history.back().en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per piece
             }
         } else {
             if ((moves << 8) & get_single_bitboard(history.back().en_passant_square)) {
-                legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per piece
+                legal_moves.push_back(Move(pos, history.back().en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per piece
             }
         }
         bb &= bb - 1;
