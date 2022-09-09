@@ -58,6 +58,7 @@ cdef extern from "../src/game.h":
 
         uint8_t from_ "from"()
         uint8_t to()
+        Flag flag()
         string cUCI "UCI"()
 
     cdef cppclass cChess "Chess":
