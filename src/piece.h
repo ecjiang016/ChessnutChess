@@ -58,11 +58,11 @@ enum Flag : uint16_t {
     EN_PASSANT   =  0b100000000000000,
     CASTLE_SHORT =  0b101000000000000,
     CASTLE_LONG  =  0b110000000000000,
-    PROMOTION    =  0b111000000000000, //This element not used for Move struct flag but rather for templates that take flags
-    PROMOTION_KNIGHT = 0b1000000000000000,
-    PROMOTION_BISHOP = 0b1001000000000000,
-    PROMOTION_ROOK   = 0b1010000000000000,
-    PROMOTION_QUEEN  = 0b1011000000000000,
+    PROMOTION_CAPTURE =  0b111000000000000, //This element not used for Move struct flag but rather for templates that take flags
+    PROMOTION_KNIGHT  = 0b1000000000000000,
+    PROMOTION_BISHOP  = 0b1001000000000000,
+    PROMOTION_ROOK    = 0b1010000000000000,
+    PROMOTION_QUEEN   = 0b1011000000000000,
     PROMOTION_CAPTURE_KNIGHT = 0b1100000000000000,
     PROMOTION_CAPTURE_BISHOP = 0b1101000000000000,
     PROMOTION_CAPTURE_ROOK   = 0b1110000000000000,
@@ -164,13 +164,14 @@ inline void add_moves(uint8_t piece_pos, Bitboard move_bitboard, std::vector<Mov
     }
 }
 
+//Used to add all capture promotions
 template<>
-inline void add_moves<PROMOTION>(uint8_t piece_pos, Bitboard move_bitboard, std::vector<Move> &moves) {
+inline void add_moves<PROMOTION_CAPTURE>(uint8_t piece_pos, Bitboard move_bitboard, std::vector<Move> &moves) {
     while (move_bitboard) {
-        moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_KNIGHT));
-        moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_BISHOP));
-        moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_ROOK));
-        moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_QUEEN));
+        moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_CAPTURE_KNIGHT));
+        moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_CAPTURE_BISHOP));
+        moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_CAPTURE_ROOK));
+        moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_CAPTURE_QUEEN));
         move_bitboard &= move_bitboard - 1;
     }
 }

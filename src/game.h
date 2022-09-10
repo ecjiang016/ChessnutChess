@@ -624,7 +624,7 @@ std::vector<Move> Chess::getMoves() const {
         pos = bitScanForward(bb);
         moves = pawn_attacks<color>(bb & -bb);
         add_moves<CAPTURE>(pos, moves & capture_mask & ~promotion_row<color>(), legal_moves);
-        add_moves<PROMOTION>(pos, moves & capture_mask & promotion_row<color>(), legal_moves);
+        add_moves<PROMOTION_CAPTURE>(pos, moves & capture_mask & promotion_row<color>(), legal_moves);
 
         //Handle en passants
         if constexpr (color == WHITE) {
