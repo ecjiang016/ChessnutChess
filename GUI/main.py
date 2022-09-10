@@ -262,6 +262,7 @@ def main(fen=""):
                     new_x, new_y = drop_pos
                     if game.checkLegalMove(selected_x, selected_y, new_x, new_y):
                         piece, old_x, old_y = selected_piece
+                        promotion_type = None
                         while (piece == 1 and new_y == 0) or (piece == -1 and new_y == 7): #Freezes the GUI for moves so that a promotion piece can be picked on GUI
                             pevents = pygame.event.get()
                             board_surface = create_background_board(move_list, selected_piece, piece, new_x, new_y)
@@ -271,25 +272,25 @@ def main(fen=""):
 
                                 elif pevent.type == pygame.MOUSEBUTTONDOWN:
                                     #print((np.sign(piece) < 0) == game.color)
-                                    if piece and (np.sign(piece) < 0) == game.color:
-                                        selected_piece = piece, x, y
-                                    if x == new_x and (y == 0 or y == 7):
+                                    #if piece and (np.sign(piece) < 0) == game.color:
+                                    #    selected_piece = piece, x, y
+                                    _, promotion_select_x, promotion_select_y = get_square_under_mouse(game_board)
+                                    if promotion_select_x == new_x and (promotion_select_y == 0 or promotion_select_y == 7):
                                         promotion_type = 'q'
-                                        game.makeMove(selected_x, selected_y, new_x, new_y, promotion_type)
                                         piece = None
-                                    elif x == new_x and (y == 1 or y == 6):
+                                        break
+                                    elif promotion_select_x == new_x and (promotion_select_y == 1 or promotion_select_y == 6):
                                         promotion_type = 'r'
-                                        game.makeMove(selected_x, selected_y, new_x, new_y, promotion_type)
                                         piece = None
-                                    elif x == new_x and (y == 2 or y == 5):
+                                        break
+                                    elif promotion_select_x == new_x and (promotion_select_y == 2 or promotion_select_y == 5):
                                         promotion_type = 'b'
-                                        game.makeMove(selected_x, selected_y, new_x, new_y, promotion_type)
                                         piece = None
-                                    elif x == new_x and (y == 3 or y == 4):
+                                        break
+                                    elif promotion_select_x == new_x and (promotion_select_y == 3 or promotion_select_y == 4):
                                         promotion_type = 'n'
-                                        game.makeMove(selected_x, selected_y, new_x, new_y, promotion_type)
                                         piece = None
-
+                                        break
 
                                 elif pevent.type == pygame.MOUSEBUTTONUP:
                                     pass
@@ -309,7 +310,7 @@ def main(fen=""):
 #
                             #promote = {"Q":5, "N":2, "R":4, "B":3}[promote.upper()]
                             
-                        game.makeMove(selected_x, selected_y, new_x, new_y)
+                        game.makeMove(selected_x, selected_y, new_x, new_y, promotion_type)
                         game_board = game.createBoard()
 
                 selected_piece = 0, -1, -1
