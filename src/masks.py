@@ -342,7 +342,7 @@ def compute_ray_masks():
                             check_pos = space + pos1
                             board[check_pos] = 1
                     else: #Left
-                        for space in range(1, x1):
+                        for space in range(1, x1 + 1):
                             check_pos = -space + pos1
                             board[check_pos] = 1
 
