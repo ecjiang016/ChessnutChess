@@ -35,8 +35,21 @@ cdef extern from "../src/game.h":
         BlackKing = 14
 
     enum Flag:
-        QUIET = 4096
-        CAPTURE = 4097
+        QUIET        =  0b001000000000000
+        CAPTURE      =  0b010000000000000
+        DOUBLE_PUSH  =  0b011000000000000
+        EN_PASSANT   =  0b100000000000000
+        CASTLE_SHORT =  0b101000000000000
+        CASTLE_LONG  =  0b110000000000000
+        PROMOTION    =  0b111000000000000
+        PROMOTION_KNIGHT = 0b1000000000000000
+        PROMOTION_BISHOP = 0b1001000000000000
+        PROMOTION_ROOK   = 0b1010000000000000
+        PROMOTION_QUEEN  = 0b1011000000000000
+        PROMOTION_CAPTURE_KNIGHT = 0b1100000000000000
+        PROMOTION_CAPTURE_BISHOP = 0b1101000000000000
+        PROMOTION_CAPTURE_ROOK   = 0b1110000000000000
+        PROMOTION_CAPTURE_QUEEN  = 0b1111000000000000
 
     cdef cppclass Move:
         Move() except +
@@ -45,6 +58,7 @@ cdef extern from "../src/game.h":
 
         uint8_t from_ "from"()
         uint8_t to()
+        Flag flag()
         string cUCI "UCI"()
 
     cdef cppclass cChess "Chess":
@@ -118,7 +132,7 @@ cdef class Chess:
 
         return False
 
-    def makeMove(self, old_x, old_y, new_x, new_y):
+    def makeMove(self, old_x, old_y, new_x, new_y, promotion = None):
         old_c = coords_2D_to_1D(old_x, old_y)
         new_c = coords_2D_to_1D(new_x, new_y)
         cdef vector[Move] allMoves = self.cobj.getMoves_white() if self.color == WHITE else self.cobj.getMoves_black()
@@ -126,7 +140,17 @@ cdef class Chess:
         for i in range(allMoves.size()):
             move = allMoves[i]
             if move.from_() == old_c and move.to() == new_c:
-                break
+                if promotion == None:
+                    break
+                else:
+                    if promotion.lower() == 'n' and (move.flag() == PROMOTION_KNIGHT or move.flag() == PROMOTION_CAPTURE_KNIGHT):
+                        break
+                    elif promotion.lower() == 'b' and (move.flag() == PROMOTION_BISHOP or move.flag() == PROMOTION_CAPTURE_BISHOP):
+                        break
+                    elif promotion.lower() == 'r' and (move.flag() == PROMOTION_ROOK or move.flag() == PROMOTION_CAPTURE_ROOK):
+                        break
+                    elif promotion.lower() == 'q' and (move.flag() == PROMOTION_QUEEN or move.flag() == PROMOTION_CAPTURE_QUEEN):
+                        break
 
         if self.color == WHITE:
             self.cobj.makeMove_white(move)
