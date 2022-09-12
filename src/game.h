@@ -539,7 +539,7 @@ std::vector<Move> Chess::getMoves() const {
 				bb &= bb - 1;
 			}
 
-			//Adding bishop + diagonal queen moves
+			//Adding rook + not diagonal queen moves
 			bb = (get_bitboard(Rook, color) | get_bitboard(Queen, color)) & pinned;
 			while (bb) {
 				pos = bitScanForward(bb);
