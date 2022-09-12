@@ -123,7 +123,7 @@ def draw_promotion_pieces(screen, pawn_pos):
             screen.blit(img, pieces[i])
     else:
         for i in range(4, 0, -1):
-            img = images[i]
+            img = images[-i-1]
             pieces[i].center = (x * 100 + 50), ((3 + i) * 100 + 50)
             screen.blit(img, pieces[i])
 
@@ -233,6 +233,7 @@ def main(fen=""):
     promote = False
 
     while True:
+        cancel = False
         piece, x, y = get_square_under_mouse(game_board)
         selected_x, selected_y = selected_piece[1:3]
         board_surface = create_background_board(move_list, selected_piece, piece, x, y)
@@ -257,7 +258,6 @@ def main(fen=""):
                     move_list = game.pieceMoves(x, y)
 
             elif event.type == pygame.MOUSEBUTTONUP:
-
                 if drop_pos:
                     new_x, new_y = drop_pos
                     if game.checkLegalMove(selected_x, selected_y, new_x, new_y):
@@ -275,20 +275,24 @@ def main(fen=""):
                                     #if piece and (np.sign(piece) < 0) == game.color:
                                     #    selected_piece = piece, x, y
                                     _, promotion_select_x, promotion_select_y = get_square_under_mouse(game_board)
-                                    if promotion_select_x == new_x and (promotion_select_y == 0 or promotion_select_y == 7):
+                                    if promotion_select_x == new_x and (promotion_select_y == 0 and piece == 1) or (promotion_select_y == 7 and piece == -1): #Queen promotion
                                         promotion_type = 'q'
                                         piece = None
                                         break
-                                    elif promotion_select_x == new_x and (promotion_select_y == 1 or promotion_select_y == 6):
+                                    elif promotion_select_x == new_x and (promotion_select_y == 1 and piece == 1) or (promotion_select_y == 6 and piece == -1): #Rook promotion
                                         promotion_type = 'r'
                                         piece = None
                                         break
-                                    elif promotion_select_x == new_x and (promotion_select_y == 2 or promotion_select_y == 5):
+                                    elif promotion_select_x == new_x and (promotion_select_y == 2 and piece == 1) or (promotion_select_y == 5 and piece == -1): #Bishop promotion
                                         promotion_type = 'b'
                                         piece = None
                                         break
-                                    elif promotion_select_x == new_x and (promotion_select_y == 3 or promotion_select_y == 4):
+                                    elif promotion_select_x == new_x and (promotion_select_y == 3 and piece == 1) or (promotion_select_y == 4 and piece == -1): #Knight promotion
                                         promotion_type = 'n'
+                                        piece = None
+                                        break
+                                    elif promotion_select_x == new_x and (promotion_select_y == 4 and piece == 1) or (promotion_select_y == 3 and piece == -1): #Cancel out of promotion
+                                        cancel = True
                                         piece = None
                                         break
 
@@ -309,9 +313,9 @@ def main(fen=""):
                             #    promote = input("Promote to Q, R, B, or N: ")
 #
                             #promote = {"Q":5, "N":2, "R":4, "B":3}[promote.upper()]
-                            
-                        game.makeMove(selected_x, selected_y, new_x, new_y, promotion_type)
-                        game_board = game.createBoard()
+                        if cancel == False:                   
+                            game.makeMove(selected_x, selected_y, new_x, new_y, promotion_type)
+                            game_board = game.createBoard()
 
                 selected_piece = 0, -1, -1
                 drop_pos = None
