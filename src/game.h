@@ -409,6 +409,7 @@ std::vector<Move> Chess::getMoves() const {
             switch(mailbox[pos]) {
                 case makePiece(Pawn, ~color):
                     //The checking pawn can be taken by en passant
+                    bb = get_bitboard(Pawn, color);
                     while (bb) {
                         moves = pawn_attacks<color>(bb & -bb);
                         if constexpr (color == WHITE) {
