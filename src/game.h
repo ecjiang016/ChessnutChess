@@ -407,16 +407,29 @@ std::vector<Move> Chess::getMoves() const {
             pos = bitScanForward(checkers); //Index of the checker
             switch(mailbox[pos]) {
                 case makePiece(Pawn, ~color):
-                    ;
                     //The checking pawn can be taken by en passant
+                    while (bb) {
+                        moves = pawn_attacks<color>(bb & -bb);
+                        if constexpr (color == WHITE) {
+                            if (get_single_bitboard(pos) & get_single_bitboard(history.back().en_passant_square) & (moves >> 8)) {
+                                legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per piece
+                            }
+                        } else {
+                            if (get_single_bitboard(pos) & get_single_bitboard(history.back().en_passant_square) & (moves << 8)) {
+                                legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per piece
+                            }
+                        }
+                        bb &= bb - 1;
+                    }
                     //No break to continue to knight case
+                    
                 case makePiece(Knight, ~color):
                     //If there's a single check from a pawn or a knight, the only moves are captures of that piece
                     //Shouldn't need to include king as it should have been handled earlier
                     //Looks for pieces that can capture by generating attacks from the checker square and looking for intersections with friendly pieces
                     //Essentially generating the capture in "reverse"
 
-                    bb = ((pawn_attacks<~color>(checkers)   & get_bitboard(Pawn,   color)) |
+                    bb = ((pawn_attacks<~color>(checkers) & get_bitboard(Pawn, color)) |
                         (get_attacks<Knight>(pos, all) & get_bitboard(Knight, color)) |
                         (get_attacks<Bishop>(pos, all) & (get_bitboard(Bishop, color) | get_bitboard(Queen, color))) |
                         (get_attacks<Rook>  (pos, all) & (get_bitboard(Rook,   color) | get_bitboard(Queen, color)))) & ~pinned;
