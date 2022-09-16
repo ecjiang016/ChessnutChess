@@ -36,6 +36,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Stack dumps
+*.stackdump
+
 # Visual Studio Code
 .vscode
 
