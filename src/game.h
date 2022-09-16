@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-const std::string starting_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+const std::string starting_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 struct History {
   public:
@@ -45,7 +45,7 @@ class Chess {
         return std::vector<Piece>(mailbox, mailbox + 64);
     }
     
-	void setFen(std::string fen);
+	Color setFen(std::string fen);
 	std::string getFen() const;
     void print() const;
 

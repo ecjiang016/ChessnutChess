@@ -1,6 +1,6 @@
 #include "game.h"
 
-void Chess::setFen(std::string fen) {
+Color Chess::setFen(std::string fen) {
     int set_space = 56;
 
     //Reset all bitboards to empty
@@ -13,7 +13,9 @@ void Chess::setFen(std::string fen) {
         mailbox[i] = NoPiece;
     }
 
-    for (int i = 0; i < fen.size(); i++) {
+    uint8_t i = 0;
+    while (fen[i] != ' ') { //The piece positions
+        std::cout << fen[i] << "\n";
         switch (fen[i]) {
             case 'P':
                 bitboards[WhitePawn] |= get_single_bitboard(set_space);
@@ -70,7 +72,14 @@ void Chess::setFen(std::string fen) {
                 set_space += (int)fen[i] - 49; //Subtract 48 cause of ASCII and -1 to counteract the set_space++ later
         }
         set_space++;
+        i++;
     }
+
+    i++; //Skip the first space
+    //Other fen information
+    Color color = fen[i] == 'w' ? WHITE : BLACK;
+    
+    return color;
 
 }
 
