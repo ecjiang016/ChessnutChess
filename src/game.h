@@ -316,6 +316,7 @@ void Chess::unmakeMove(Move move) {
             bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to()); //Remove the piece the pawn promoted to
             bitboards[history.back().capture] ^= get_single_bitboard(move.to()); //Put back captured piece
             mailbox[move.to()] = history.back().capture;
+            break;
 
     }
 
