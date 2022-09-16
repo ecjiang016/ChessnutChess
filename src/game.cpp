@@ -15,7 +15,6 @@ Color Chess::setFen(std::string fen) {
 
     uint8_t i = 0;
     while (fen[i] != ' ') { //The piece positions
-        std::cout << fen[i] << "\n";
         switch (fen[i]) {
             case 'P':
                 bitboards[WhitePawn] |= get_single_bitboard(set_space);
