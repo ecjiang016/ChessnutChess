@@ -76,9 +76,103 @@ Color Chess::setFen(std::string fen) {
 
     i++; //Skip the first space
     //Other fen information
+    //color
     Color color = fen[i] == 'w' ? WHITE : BLACK;
     
-    return color;
+    //Castling rights
+    i++;
+    bool castle_WK = false;
+    bool castle_WQ = false;
+    bool castle_Bk = false;
+    bool castle_Bq = false;
+    while (fen[i] != ' ') {
+        switch (fen[i]) {
+            case 'K':
+                castle_WK = true;
+                break;
+            case 'Q':
+                castle_WQ = true;
+                break;
+            case 'k':
+                castle_Bk = true;
+                break;
+            case 'q':
+                castle_Bq = true;
+                break;
+        }
+        i++;
+    }
+
+    //En passant square
+    int en_passant_square = 0; //0 for no en passant square since there can't possibly be an en passant there
+    i++;
+    if (fen[i] != '-') {
+        en_passant_square = string_to_index(fen.substr(i, 2));
+    }
+
+    //We do not keep track of halfmoves 
+    while (fen[i] != ' ') {
+        i++;
+    }
+
+    //Fullmove number gets converted and sets the depth
+    //The space after halfmove and fullmove is taken into consideration here
+    int fullmove = std::stoi(fen.substr(i + 1, fen.size() - i)); //Grabs the rest of the fen
+    this->depth = (fullmove - 1) * 2 + color; //Adding one if black plays next
+
+    //Now that depth is set, the history info can be put into the right index
+    this->history[depth] = History();
+
+    //Set castling status of king
+    //If either side castling is possible, that means king hasn't moved and its bit needs to be set to 0
+    if (castle_WK | castle_WQ) {
+        this->history[depth].castling &= ~Bitboard(0b10000);
+    } else {
+        this->history[depth].castling |= Bitboard(0b10000);
+    }
+    if (castle_Bk | castle_Bq) {
+        this->history[depth].castling &= ~Bitboard(0b10000) << 56;
+    } else {
+        this->history[depth].castling |= Bitboard(0b10000) << 56;
+    }
+
+    //Set castling status of rooks
+    //Bit set to 0 if castling can be done on that rook, otherwise it's set to 0
+    if (castle_WK) {
+        this->history[depth].castling &= ~Bitboard(0b10000000);
+        
+    } else {
+        this->history[depth].castling |= Bitboard(0b10000000);
+    }
+    if (castle_WQ) {
+        this->history[depth].castling &= ~Bitboard(1);
+        
+    } else {
+        this->history[depth].castling |= Bitboard(1);
+    }
+    if (castle_Bk) {
+        this->history[depth].castling &= ~Bitboard(0b10000000) << 56;
+        
+    } else {
+        this->history[depth].castling |= Bitboard(0b10000000) << 56;
+    }
+    if (castle_Bq) {
+        this->history[depth].castling &= ~Bitboard(1) << 56;
+        
+    } else {
+        this->history[depth].castling |= Bitboard(1) << 56;
+    }
+    
+
+    //Put en passant square in history
+    if (en_passant_square) {
+        this->history[depth].en_passant_square = en_passant_square;
+    }
+
+    //History.capture cannot be set as fen doesn't provide the information for it
+    //This also means that undoing past where the fen was set would be bugged
+    
+    return color; //Color isn't being kept track of by the class so the code using it needs to get the color back from the fen reading
 
 }
 

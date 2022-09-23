@@ -29,7 +29,8 @@ class Chess {
   private:
     Piece mailbox[64];
 	Bitboard bitboards[15];
-    std::vector<History> history;
+    History history[5949];
+    uint16_t depth;
 
 	template<Color color> inline Bitboard all_bitboards() const;
 	constexpr inline Bitboard get_bitboard(PieceType piece, Color color) const {
@@ -49,16 +50,12 @@ class Chess {
 	std::string getFen() const;
     void print() const;
 
-	inline Chess() {
+	inline Chess() : depth(0) {
 		setFen(starting_pos);
-        history.reserve(200);
-        history.push_back(History());
 	}
 
-	inline Chess(std::string starting_pos) {
+	inline Chess(std::string starting_pos) : depth(0) {
 		setFen(starting_pos);
-        history.reserve(200);
-        history.push_back(History());
 	}
 };
 
