@@ -4,6 +4,9 @@
 #include <vector>
 
 extern const std::string index_to_string[64];
+inline int string_to_index(std::string str) {
+    return ((str[1] - '1') * 8) + (str[0] - 'a');
+}
 
 enum Color : uint8_t {
     WHITE = 0, BLACK = 1
@@ -88,11 +91,11 @@ struct Move {
     }
 
     Move(std::string uci) {
-        move = QUIET | ((((int((char)uci[1]) - 49) * 8) + (int((char)uci[0]) - 97)) << 6) | (((int((char)uci[3]) - 49) * 8) + (int((char)uci[2]) - 97));
+        move = QUIET | (((uci[1] - '1') * 8) + (uci[0] - 'a') << 6) | ((uci[3] - '1') * 8) + (uci[2] - 'a');
     }
 
     Move(std::string uci, Flag flag) {
-        move = flag | ((((int((char)uci[1]) - 49) * 8) + (int((char)uci[0]) - 97)) << 6) | (((int((char)uci[3]) - 49) * 8) + (int((char)uci[2]) - 97));
+        move = flag | (((uci[1] - '1') * 8) + (uci[0] - 'a') << 6) | ((uci[3] - '1') * 8) + (uci[2] - 'a');
     }
 
     inline uint8_t from() {
