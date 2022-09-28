@@ -91,11 +91,11 @@ struct Move {
     }
 
     Move(std::string uci) {
-        move = QUIET | (((uci[1] - '1') * 8) + ((uci[0] - 'a') << 6)) | ((uci[3] - '1') * 8) + (uci[2] - 'a');
+        move = QUIET | ((((uci[1] - '1') * 8) + (uci[0] - 'a')) << 6) | ((uci[3] - '1') * 8) + (uci[2] - 'a');
     }
 
     Move(std::string uci, Flag flag) {
-        move = flag | (((uci[1] - '1') * 8) + ((uci[0] - 'a') << 6)) | ((uci[3] - '1') * 8) + (uci[2] - 'a');
+        move = flag | ((((uci[1] - '1') * 8) + (uci[0] - 'a')) << 6) | ((uci[3] - '1') * 8) + (uci[2] - 'a');
     }
 
     inline uint8_t from() {
