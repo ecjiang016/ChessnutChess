@@ -78,9 +78,9 @@ Color Chess::setFen(std::string fen) {
     //Other fen information
     //color
     Color color = fen[i] == 'w' ? WHITE : BLACK;
-    
+    i += 2;
+
     //Castling rights
-    i++;
     bool castle_WK = false;
     bool castle_WQ = false;
     bool castle_Bk = false;
@@ -110,15 +110,18 @@ Color Chess::setFen(std::string fen) {
         en_passant_square = string_to_index(fen.substr(i, 2));
     }
 
-    //We do not keep track of halfmoves 
+    //We do not keep track of halfmoves
+    i += 2;
     while (fen[i] != ' ') {
         i++;
     }
 
     //Fullmove number gets converted and sets the depth
     //The space after halfmove and fullmove is taken into consideration here
-    int fullmove = std::stoi(fen.substr(i + 1, fen.size() - i)); //Grabs the rest of the fen
-    this->depth = (fullmove - 1) * 2 + color; //Adding one if black plays next
+    if (fen.size() - i > i + 1) { //Sometimes the fen doesn't provide move numbers and stoi will crash stuff if it's not there
+        int fullmove = std::stoi(fen.substr(i + 1, fen.size() - i)); //Grabs the rest of the fen
+        this->depth = (fullmove - 1) * 2 + color; //Adding one if black plays next
+    }
 
     //Now that depth is set, the history info can be put into the right index
     this->history[depth] = History();
