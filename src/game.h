@@ -5,6 +5,7 @@
 #include <string>
 
 const std::string starting_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+constexpr size_t MAX_GAME_LENGTH = 5949;
 
 struct History {
   public:
@@ -21,15 +22,15 @@ struct History {
     inline History() : en_passant_square(0), capture(NoPiece), castling(0x6E1111111111116E) {}
 
     //When making a new history off of an old one, the only relevant information is the castling square
-	//Copy constuctor can only be used for make umake, otherwise copying of the Chess class doesn't work correctly
-    //inline History(const History &history) : en_passant_square(0), capture(NoPiece), castling(history.castling) {}
+	//Copy constuctor can only be used for make unmake, otherwise copying of the Chess class doesn't work correctly
+    inline History(const History &history) : en_passant_square(0), capture(NoPiece), castling(history.castling) {}
 };
 
 class Chess {
   private:
     Piece mailbox[64];
 	Bitboard bitboards[15];
-    History history[5949];
+    History history[MAX_GAME_LENGTH];
     uint16_t depth;
 
 	template<Color color> inline Bitboard all_bitboards() const;
@@ -50,12 +51,12 @@ class Chess {
 	std::string getFen() const;
     void print() const;
 
-	inline Chess() : depth(0) {
+	inline Chess() {
 		setFen(starting_pos);
 	}
 
-	inline Chess(std::string starting_pos) : depth(0) {
-		setFen(starting_pos);
+	inline Chess(std::string fen) {
+		setFen(fen);
 	}
 };
 
@@ -73,8 +74,7 @@ inline Bitboard Chess::all_bitboards() const {
 
 template<Color color>
 void Chess::makeMove(Move move) {
-    History current_history_data;
-	current_history_data.castling = history.back().castling;
+    History current_history_data = history[depth]; //Copy relevant data from current depth to the queued next depth history
 
 	switch (move.flag()) {
 		case QUIET:
@@ -219,7 +219,9 @@ void Chess::makeMove(Move move) {
 
 	}
 
-    history.push_back(current_history_data);
+    //Advance depth and add history data in the new slot
+    depth++;
+    history[depth] = current_history_data;
 
 }
 
@@ -234,9 +236,9 @@ void Chess::unmakeMove(Move move) {
 
         case CAPTURE:
             bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.from()) | get_single_bitboard(move.to());; // Update piece position on bitboard
-			bitboards[history.back().capture] ^= get_single_bitboard(move.to()); //Put back the captured piece
+			bitboards[history[depth].capture] ^= get_single_bitboard(move.to()); //Put back the captured piece
 			mailbox[move.from()] = mailbox[move.to()]; // Update new mailbox position
-			mailbox[move.to()] = history.back().capture; // Remove the mailbox piece from it's old position
+			mailbox[move.to()] = history[depth].capture; // Remove the mailbox piece from it's old position
             break;
 
         case DOUBLE_PUSH:
@@ -311,14 +313,14 @@ void Chess::unmakeMove(Move move) {
             bitboards[makePiece(Pawn, color)] ^= get_single_bitboard(move.from()); //Put pawn back to old position
             mailbox[move.from()] = makePiece(Pawn, color);
             bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.to()); //Remove the piece the pawn promoted to
-            bitboards[history.back().capture] ^= get_single_bitboard(move.to()); //Put back captured piece
-            mailbox[move.to()] = history.back().capture;
+            bitboards[history[depth].capture] ^= get_single_bitboard(move.to()); //Put back captured piece
+            mailbox[move.to()] = history[depth].capture;
             break;
 
     }
 
-    history.pop_back();
-
+    depth--;
+    //No need to clear the history as it will just get overwritten when needed
 }
 
 template<Color color>
@@ -410,12 +412,12 @@ std::vector<Move> Chess::getMoves() const {
                     while (bb) {
                         moves = pawn_attacks<color>(bb & -bb);
                         if constexpr (color == WHITE) {
-                            if (get_single_bitboard(pos) & get_single_bitboard(history.back().en_passant_square) & (moves >> 8)) {
-                                legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per piece
+                            if (get_single_bitboard(pos) & get_single_bitboard(history[depth].en_passant_square) & (moves >> 8)) {
+                                legal_moves.push_back(Move(bitScanForward(bb), history[depth].en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per piece
                             }
                         } else {
-                            if (get_single_bitboard(pos) & get_single_bitboard(history.back().en_passant_square) & (moves << 8)) {
-                                legal_moves.push_back(Move(bitScanForward(bb), history.back().en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per piece
+                            if (get_single_bitboard(pos) & get_single_bitboard(history[depth].en_passant_square) & (moves << 8)) {
+                                legal_moves.push_back(Move(bitScanForward(bb), history[depth].en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per piece
                             }
                         }
                         bb &= bb - 1;
@@ -459,11 +461,11 @@ std::vector<Move> Chess::getMoves() const {
             //castling_pieces is a mask that includes the white king and the castling rook
             //king_castle_spaces is a mask that includes the spaces in between the castling rook and the king
             
-            //history.back().castling & castling_pieces will evaluate to 0 if the king and rook haven't moved
+            //history[depth].castling & castling_pieces will evaluate to 0 if the king and rook haven't moved
             //(danger | all) & king_castle_spaces will evaulate to 0 if the king won't get into check or get blocked on the way it's castle position
             //Castling is possible if ~piece_moved & ~danger which is logically equivalent to ~(piece_moved | danger) or !(piece_moved | danger) to cast to bool
             
-            if (!((history.back().castling & castling_pieces<color, CASTLE_SHORT>()) |
+            if (!((history[depth].castling & castling_pieces<color, CASTLE_SHORT>()) |
                 ((danger | all) & king_castle_spaces<color, CASTLE_SHORT>()))) {
 
                 if constexpr (color == WHITE) {
@@ -476,7 +478,7 @@ std::vector<Move> Chess::getMoves() const {
 
             //For long castles, the space where the knight is doesn't have to be clear of checks for castling to be possible
             //So it gets masked out by intersecting it with ~long_castle_knight<color>()
-            if (!((history.back().castling & castling_pieces<color, CASTLE_LONG>()) |
+            if (!((history[depth].castling & castling_pieces<color, CASTLE_LONG>()) |
                 (((danger & ~long_castle_knight<color>()) | all) & king_castle_spaces<color, CASTLE_LONG>()))) {
 
                 if constexpr (color == WHITE) {
@@ -524,12 +526,12 @@ std::vector<Move> Chess::getMoves() const {
 
                 //Handle en passants
                 if constexpr (color == WHITE) {
-                    if ((moves >> 8) & get_single_bitboard(history.back().en_passant_square)) {
-                        legal_moves.push_back(Move(pos, history.back().en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per turn
+                    if ((moves >> 8) & get_single_bitboard(history[depth].en_passant_square)) {
+                        legal_moves.push_back(Move(pos, history[depth].en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per turn
                     }
                 } else {
-                    if ((moves << 8) & get_single_bitboard(history.back().en_passant_square)) {
-                        legal_moves.push_back(Move(pos, history.back().en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per turn
+                    if ((moves << 8) & get_single_bitboard(history[depth].en_passant_square)) {
+                        legal_moves.push_back(Move(pos, history[depth].en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per turn
                     }
                 }
                 bb &= bb - 1;
@@ -640,12 +642,12 @@ std::vector<Move> Chess::getMoves() const {
 
         //Handle en passants
         if constexpr (color == WHITE) {
-            if ((moves >> 8) & get_single_bitboard(history.back().en_passant_square)) {
-                legal_moves.push_back(Move(pos, history.back().en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per piece
+            if ((moves >> 8) & get_single_bitboard(history[depth].en_passant_square)) {
+                legal_moves.push_back(Move(pos, history[depth].en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per piece
             }
         } else {
-            if ((moves << 8) & get_single_bitboard(history.back().en_passant_square)) {
-                legal_moves.push_back(Move(pos, history.back().en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per piece
+            if ((moves << 8) & get_single_bitboard(history[depth].en_passant_square)) {
+                legal_moves.push_back(Move(pos, history[depth].en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per piece
             }
         }
         bb &= bb - 1;
