@@ -72,7 +72,7 @@ cdef extern from "../src/game.h":
         void unmakeMove_white "unmakeMove<WHITE>"(Move move)
         void unmakeMove_black "unmakeMove<BLACK>"(Move move)
         vector[Piece] getMailbox()
-        void csetFen "setFen"(string fen)
+        Color csetFen "setFen"(string fen)
 
 def coords_2D_to_1D(x, y):
     return (7-y)*8 + x
@@ -184,4 +184,4 @@ cdef class Chess:
         return np.flipud(np.array(board).reshape(8, 8))
 
     def setFen(self, fen):
-        self.cobj.csetFen(fen.encode("utf-8"))
+        self.color = self.cobj.csetFen(fen.encode("utf-8"))
