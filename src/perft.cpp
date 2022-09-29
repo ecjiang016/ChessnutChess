@@ -48,23 +48,25 @@ uint64_t search(int depth, Chess game) {
 
 int main(int argc, char * argv[]) {
     Chess game;
-    game.setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
-    std::cout << game.getFen() << std::endl;
-    game.print();
-
-    int depth = 4;
-    if (argc == 2) {
-        std::string depth_str = argv[1];
-        depth = std::stoi(depth_str);
+    Color color = WHITE;
+    unsigned int depth = -1;
+    
+    if (argc == 2) { //Given a fen
+        color = game.setFen(argv[1]);
+    } else if (argc == 3) { //Given a fen and a depth
+        color = game.setFen(argv[1]);
+        depth = std::stoi(std::string(argv[2]));
     }
+
+    game.print();
 
     for (int i = 0; i <= depth; i++) {
         auto start = std::chrono::high_resolution_clock::now();
-        auto positions = search<WHITE>(i, game);
+        auto positions = color == WHITE ? search<WHITE>(i, game) : search<BLACK>(i, game);
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> sec = end - start;
         std::cout << std::endl << "Depth: " << i << std::endl;
         std::cout << "Nodes: " << positions << std::endl;
-        std::cout << std::fixed << (positions / (sec.count() / 1000.0)) << " nps" << std::endl << std::endl;
+        std::cout << std::fixed << (positions / (sec.count() / 1000.0)) << " nps\n" << std::endl;
     }
 }
