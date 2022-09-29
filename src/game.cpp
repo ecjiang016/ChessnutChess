@@ -134,7 +134,7 @@ Color Chess::setFen(std::string fen) {
         this->history[depth].castling |= Bitboard(0b10000);
     }
     if (castle_Bk | castle_Bq) {
-        this->history[depth].castling &= ~Bitboard(0b10000) << 56;
+        this->history[depth].castling &= ~(Bitboard(0b10000) << 56);
     } else {
         this->history[depth].castling |= Bitboard(0b10000) << 56;
     }
@@ -154,13 +154,13 @@ Color Chess::setFen(std::string fen) {
         this->history[depth].castling |= Bitboard(1);
     }
     if (castle_Bk) {
-        this->history[depth].castling &= ~Bitboard(0b10000000) << 56;
+        this->history[depth].castling &= ~(Bitboard(0b10000000) << 56);
         
     } else {
         this->history[depth].castling |= Bitboard(0b10000000) << 56;
     }
     if (castle_Bq) {
-        this->history[depth].castling &= ~Bitboard(1) << 56;
+        this->history[depth].castling &= ~(Bitboard(1) << 56);
         
     } else {
         this->history[depth].castling |= Bitboard(1) << 56;
