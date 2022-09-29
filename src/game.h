@@ -51,11 +51,11 @@ class Chess {
 	std::string getFen() const;
     void print() const;
 
-	inline Chess() {
+	inline Chess() : depth(0) {
 		setFen(starting_pos);
 	}
 
-	inline Chess(std::string fen) {
+	inline Chess(std::string fen) : depth(0) {
 		setFen(fen);
 	}
 };
