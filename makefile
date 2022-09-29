@@ -1,8 +1,8 @@
-C = gcc
-CXX = g++
-RM = rm -f
-PY = python3
-CPPFLAGS = -O3 -std=c++17
+C=gcc
+CXX=g++
+RM=rm -f
+PY=python3
+CPPFLAGS=-O3 -std=c++17
 
 SRCS = $(patsubst %,src/%,game.cpp piece.cpp bits.cpp masks.cpp)
 OBJS = $(subst .cpp,.o,$(SRCS))
