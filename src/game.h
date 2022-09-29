@@ -14,12 +14,12 @@ struct History {
 	Piece capture; //Captured piece for undoing moves
     Bitboard castling;
     /*
-    Castling gets initalized to 0x6E1111111111116E
+    Castling gets initalized to 0x6EFFFFFFFFFFFF6E 
     which includes the inital position of the rooks and kings as 0s and everything else as 1s
     This is used to keep track of if the pieces have been moved or captured to determine if castling is still possible
     */
 
-    inline History() : en_passant_square(0), capture(NoPiece), castling(0x6E1111111111116E) {}
+    inline History() : en_passant_square(0), capture(NoPiece), castling(0x6EFFFFFFFFFFFF6E) {}
 
     //When making a new history off of an old one, the only relevant information is the castling square
 	//Copy constuctor can only be used for make unmake, otherwise copying of the Chess class doesn't work correctly
