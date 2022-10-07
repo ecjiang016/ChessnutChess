@@ -51,3 +51,6 @@ __pycache__/
 
 # Cython generated
 GUI/chess.cpp
+
+# Expect files
+*.exp
