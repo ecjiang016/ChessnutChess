@@ -639,18 +639,17 @@ std::vector<Move> Chess::getMoves() const {
         moves = pawn_attacks<color>(bb & -bb);
         add_moves<CAPTURE>(pos, moves & capture_mask & ~promotion_row<color>(), legal_moves);
         add_moves<PROMOTION_CAPTURE>(pos, moves & capture_mask & promotion_row<color>(), legal_moves);
-
-        //Handle en passants
-        if constexpr (color == WHITE) {
-            if ((moves >> 8) & get_single_bitboard(history[depth].en_passant_square)) {
-                legal_moves.push_back(Move(pos, history[depth].en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per piece
-            }
-        } else {
-            if ((moves << 8) & get_single_bitboard(history[depth].en_passant_square)) {
-                legal_moves.push_back(Move(pos, history[depth].en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per piece
-            }
-        }
         bb &= bb - 1;
+    }
+
+    //Add en passants if applicable
+    if (history[depth].en_passant_square != 0) {
+        constexpr int8_t shift = color == WHITE ? 8 : -8;
+        bb = (((get_single_bitboard(history[depth].en_passant_square) & ~LEFT_COLUMN) >> 1) | ((get_single_bitboard(history[depth].en_passant_square) & ~RIGHT_COLUMN) << 1)) & get_bitboard(Pawn, color);
+        while (bb) {
+            legal_moves.push_back(Move(bitScanForward(bb), history[depth].en_passant_square + shift, EN_PASSANT));
+            bb &= bb - 1;
+        }
     }
 
     //Adding knight moves
