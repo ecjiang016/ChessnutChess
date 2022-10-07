@@ -645,7 +645,8 @@ std::vector<Move> Chess::getMoves() const {
     //Add en passants if applicable
     if (history[depth].en_passant_square != 0) {
         constexpr int8_t shift = color == WHITE ? 8 : -8;
-        bb = (((get_single_bitboard(history[depth].en_passant_square) & ~LEFT_COLUMN) >> 1) | ((get_single_bitboard(history[depth].en_passant_square) & ~RIGHT_COLUMN) << 1)) & get_bitboard(Pawn, color);
+        bb = (((get_single_bitboard(history[depth].en_passant_square) & ~LEFT_COLUMN) >> 1) | ((get_single_bitboard(history[depth].en_passant_square) & ~RIGHT_COLUMN) << 1))
+            & get_bitboard(Pawn, color) & ~pinned;
         while (bb) {
             legal_moves.push_back(Move(bitScanForward(bb), history[depth].en_passant_square + shift, EN_PASSANT));
             bb &= bb - 1;
