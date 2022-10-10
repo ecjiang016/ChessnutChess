@@ -648,8 +648,9 @@ std::vector<Move> Chess::getMoves() const {
         bb = (((get_single_bitboard(history[depth].en_passant_square) & ~LEFT_COLUMN) >> 1) | ((get_single_bitboard(history[depth].en_passant_square) & ~RIGHT_COLUMN) << 1))
             & get_bitboard(Pawn, color) & ~pinned;
         while (bb) {
-            if (!(sliding_moves(all ^ (bb & -bb) ^ get_single_bitboard(history[depth].en_passant_square), rook_masks_horizontal[king_square], bitScanForward(king_square))
-                & (get_bitboard(Queen, ~color) | get_bitboard(Rook, ~color)))) {
+            //If statement for the weird pinned en passant case
+            if ((sliding_moves(all ^ (bb & -bb) ^ get_single_bitboard(history[depth].en_passant_square), rook_masks_horizontal[king_square], get_single_bitboard(king_square))
+                & (get_bitboard(Queen, ~color) | get_bitboard(Rook, ~color))) == Bitboard(0)) {
                 
                 legal_moves.push_back(Move(bitScanForward(bb), history[depth].en_passant_square + shift, EN_PASSANT));
 
