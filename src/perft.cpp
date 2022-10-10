@@ -53,8 +53,10 @@ int main(int argc, char * argv[]) {
     bool single_count = false;
 
     if (argc > 1) { //Check for flags
-        if (std::string(argv[argc-1]) == "--single-count") single_count = true;
-        argc--;
+        if (std::string(argv[argc-1]) == "--single-count") {
+            single_count = true;
+            argc--;
+        }
     }
     
     if (argc == 2) { //Given a fen
