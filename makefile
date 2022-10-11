@@ -4,13 +4,13 @@ RM=rm -f
 PY=python3
 CPPFLAGS=-O3 -std=c++17
 
-SRCS = $(patsubst %,src/%,game.cpp piece.cpp bits.cpp masks.cpp)
+SRCS = $(patsubst %,src/%,game.cpp piece.cpp bits.cpp masks.cpp perft.cpp uci.cpp)
 OBJS = $(subst .cpp,.o,$(SRCS))
 
 all: tool
 
 tool: $(OBJS)
-	$(CXX) $(CPPFLAGS) $(SRCS) src/perft.cpp -o perft.exe
+	$(CXX) $(CPPFLAGS) $(SRCS) src/main.cpp -o main.exe
 
 cython:
 	$(PY) GUI/setup.py build_ext

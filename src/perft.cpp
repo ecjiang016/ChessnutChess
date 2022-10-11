@@ -1,4 +1,4 @@
-#include "game.h"
+#include "perft.h"
 #include <chrono>
 #include <algorithm> 
 
@@ -46,25 +46,8 @@ uint64_t search(int depth, Chess game, bool extra_info = true) {
     return positions;
 }
 
-int main(int argc, char * argv[]) {
-    Chess game;
-    Color color = WHITE;
-    unsigned int depth = -1;
+void perft(Chess game, Color color, unsigned int depth) {
     bool single_count = false;
-
-    if (argc > 1) { //Check for flags
-        if (std::string(argv[argc-1]) == "--single-count") {
-            single_count = true;
-            argc--;
-        }
-    }
-    
-    if (argc == 2) { //Given a fen
-        color = game.setFen(argv[1]);
-    } else if (argc == 3) { //Given a fen and a depth
-        color = game.setFen(argv[1]);
-        depth = std::stoi(std::string(argv[2]));
-    }
 
     if (!single_count) {
         game.print();
@@ -73,9 +56,10 @@ int main(int argc, char * argv[]) {
             auto positions = color == WHITE ? search<WHITE>(i, game) : search<BLACK>(i, game);
             auto end = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double, std::milli> sec = end - start;
-            std::cout << "\nDepth: " << i;
-            std::cout << "\nNodes: " << positions << '\n';
-            std::cout << std::fixed << (positions / (sec.count() / 1000.0)) << " nps\n" << std::endl;
+            std::cout << '\n';
+            std::cout << std::fixed << (positions / (sec.count() / 1000.0)) << " nps\n";
+            std::cout << "Depth: " << i << '\n';
+            std::cout << "Nodes: " << positions << '\n' << std::endl;
         }
     } else {
         //Uses the search which takes in a pointer so it avoids the debugging prints
