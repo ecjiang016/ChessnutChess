@@ -3,16 +3,22 @@
 # https://github.com/official-stockfish/Stockfish/blob/master/tests/perft.sh
 
 error() {
-  echo "perft testing failed on line $1"
-  exit 1
+ 	echo "perft testing failed on line $1"
+ 	exit 1
 }
 trap 'error ${LINENO}' ERR
 
 echo "perft testing started"
 
 cat << EOF > perft.exp
-   spawn ./perft.exe \$fen \$depth --single-count
-   expect \$result"
+	set timeout 15
+	lassign \$argv fen depth result
+	spawn ./main.exe
+  	send "position fen \$fen\\n"
+	send "go perft \$depth\\n"
+ 	expect "Nodes: \$result" {} timeout {exit 1}
+	send "quit\\n"
+	expect eof
 EOF
 
 expect perft.exp "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" 5 4865609 > /dev/null
