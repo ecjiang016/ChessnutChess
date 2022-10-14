@@ -408,19 +408,21 @@ std::vector<Move> Chess::getMoves() const {
             switch(mailbox[pos]) {
                 case makePiece(Pawn, ~color):
                     //The checking pawn can be taken by en passant
-                    bb = get_bitboard(Pawn, color);
-                    while (bb) {
-                        moves = pawn_attacks<color>(bb & -bb);
-                        if constexpr (color == WHITE) {
-                            if (get_single_bitboard(pos) & get_single_bitboard(history[depth].en_passant_square) & (moves >> 8)) {
-                                legal_moves.push_back(Move(bitScanForward(bb), history[depth].en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per piece
+                    if (history[depth].en_passant_square == pos) {
+                        constexpr int8_t shift = color == WHITE ? 8 : -8;
+                        bb = (((get_single_bitboard(history[depth].en_passant_square) & ~LEFT_COLUMN) >> 1) | ((get_single_bitboard(history[depth].en_passant_square) & ~RIGHT_COLUMN) << 1))
+                            & get_bitboard(Pawn, color) & ~pinned;
+                        while (bb) {
+                            //If statement for the weird pinned en passant case
+                            if ((sliding_moves(all ^ (bb & -bb) ^ get_single_bitboard(history[depth].en_passant_square), rook_masks_horizontal[king_square], get_single_bitboard(king_square))
+                                & (get_bitboard(Queen, ~color) | get_bitboard(Rook, ~color))) == Bitboard(0)) {
+                                
+                                legal_moves.push_back(Move(bitScanForward(bb), history[depth].en_passant_square + shift, EN_PASSANT));
+
                             }
-                        } else {
-                            if (get_single_bitboard(pos) & get_single_bitboard(history[depth].en_passant_square) & (moves << 8)) {
-                                legal_moves.push_back(Move(bitScanForward(bb), history[depth].en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per piece
-                            }
+                        
+                            bb &= bb - 1;
                         }
-                        bb &= bb - 1;
                     }
                     //No break to continue to knight case
                     
