@@ -18,4 +18,4 @@ cython:
 clean:
 	$(RM) $(OBJS)
 	$(RM) GUI/*.pyd GUI/*.so
-	rm -r build
+	rm -rf build
