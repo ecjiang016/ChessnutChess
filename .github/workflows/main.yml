@@ -8,7 +8,7 @@ on:
       - main
 
 jobs:
-  ChessnutChess-workflow-test:
+  ChessnutChess:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
