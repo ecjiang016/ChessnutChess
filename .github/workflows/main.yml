@@ -1,0 +1,25 @@
+name: ChessnutChess
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ChessnutChess-workflow-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Get Linux packages
+        run: |
+          sudo apt update
+          sudo apt install expect 
+      - name: Build test
+        run: |
+          make clean
+          make
+      - name: Perft test
+        run: |
+          bash ./tests/perft.sh
