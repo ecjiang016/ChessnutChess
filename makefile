@@ -10,7 +10,7 @@ OBJS = $(subst .cpp,.o,$(SRCS))
 all: tool
 
 tool: $(OBJS)
-	$(CXX) $(CPPFLAGS) $(SRCS) src/main.cpp -o main.exe
+	$(CXX) $(CPPFLAGS) $(OBJS) src/main.cpp -o main.exe
 
 cython:
 	$(PY) GUI/setup.py build_ext
