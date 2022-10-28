@@ -117,6 +117,33 @@ struct Move {
 
 };
 
+constexpr size_t MOVE_VECTOR_SIZE = 1000;
+
+struct MoveArray {
+  private:
+    Move arr[MOVE_VECTOR_SIZE];
+    Move *last;
+  public:
+    MoveArray() : last(arr) {}
+
+    inline Move* begin() {
+        return arr;
+    }
+
+    inline Move* end() {
+        return last;
+    }
+
+    inline size_t size() {
+        return last - arr;
+    }
+
+    inline void push_back(Move move) {
+        arr[size()] = move;
+        last++;
+    }
+};
+
 inline Bitboard sliding_moves(Bitboard occupancy, Bitboard mask, Bitboard piece_square_bitboard) {
     return (((occupancy & mask) - piece_square_bitboard) ^
         bswap_64(bswap_64(occupancy & mask) - bswap_64(piece_square_bitboard))) & mask;
@@ -160,7 +187,7 @@ inline Bitboard get_attacks<King>(int pos_idx, Bitboard occupancy) {
 }
 
 template<Flag flag = QUIET>
-inline void add_moves(uint8_t piece_pos, Bitboard move_bitboard, std::vector<Move> &moves) {
+inline void add_moves(uint8_t piece_pos, Bitboard move_bitboard, MoveArray &moves) {
     while (move_bitboard) {
         moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), flag));
         move_bitboard &= move_bitboard - 1;
@@ -169,7 +196,7 @@ inline void add_moves(uint8_t piece_pos, Bitboard move_bitboard, std::vector<Mov
 
 //Used to add all capture promotions
 template<>
-inline void add_moves<PROMOTION_CAPTURE>(uint8_t piece_pos, Bitboard move_bitboard, std::vector<Move> &moves) {
+inline void add_moves<PROMOTION_CAPTURE>(uint8_t piece_pos, Bitboard move_bitboard, MoveArray &moves) {
     while (move_bitboard) {
         moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_CAPTURE_KNIGHT));
         moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_CAPTURE_BISHOP));

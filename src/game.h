@@ -39,7 +39,7 @@ class Chess {
     }
 
   public:
-  	template<Color color> std::vector<Move> getMoves() const;
+  	template<Color color> MoveArray getMoves() const;
     template<Color color> void makeMove(Move move);
     template<Color color> void unmakeMove(Move move);
 
@@ -324,9 +324,8 @@ void Chess::unmakeMove(Move move) {
 }
 
 template<Color color>
-std::vector<Move> Chess::getMoves() const {
-	std::vector<Move> legal_moves;
-	legal_moves.reserve(48);
+MoveArray Chess::getMoves() const {
+	MoveArray legal_moves;
 
 	Bitboard bb; //Temp bitboard used for whatever
 	Bitboard moves; //Temp bitboard to store moves

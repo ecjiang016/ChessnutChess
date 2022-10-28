@@ -8,7 +8,7 @@ uint64_t search(int depth, Chess *game) {
         return 1;
     }
 
-    std::vector<Move> moves = game->getMoves<color>();
+    MoveArray moves = game->getMoves<color>();
 
     uint64_t positions = 0;
 
