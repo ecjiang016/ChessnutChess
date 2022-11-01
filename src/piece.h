@@ -98,19 +98,19 @@ struct Move {
         move = flag | ((((uci[1] - '1') * 8) + (uci[0] - 'a')) << 6) | ((uci[3] - '1') * 8) + (uci[2] - 'a');
     }
 
-    inline uint8_t from() {
+    inline uint8_t from() const {
         return (move >> 6) & 0b111111;
     }
 
-    inline uint8_t to() {
+    inline uint8_t to() const {
         return move & 0b111111;
     }
 
-    inline Flag flag() {
+    inline Flag flag() const {
         return Flag(move & 0b1111000000000000);
     }
 
-    inline std::string UCI() {
+    inline std::string UCI() const {
         //Still needs logic for special moves
         return index_to_string[from()] + index_to_string[to()];
     }
