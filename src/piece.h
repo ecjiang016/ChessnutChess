@@ -129,11 +129,11 @@ struct MoveArray {
         return arr;
     }
 
-    inline Move* end() {
+    inline Move* end() const {
         return last;
     }
 
-    inline size_t size() {
+    inline size_t size() const {
         return last - arr;
     }
 
