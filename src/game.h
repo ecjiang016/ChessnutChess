@@ -700,6 +700,6 @@ Move* Chess::genMove(Move* legal_moves) const {
 template<Color color>
 inline MoveArray<color> Chess::getMoves() const {
     MoveArray<color> moves;
-    moves.last = this->genMove(moves.arr);
+    moves.last = this->genMove<color>(moves.arr);
     return moves;
 }
