@@ -38,8 +38,13 @@ class Chess {
         return bitboards[makePiece(piece, color)];
     }
 
+    //Actual move generation.
+    //The result is then put in a MoveArray stuct for convience when getMoves() is called
+    template<Color color>
+    Move* genMove(Move* legal_moves) const;
+
   public:
-  	template<Color color> MoveArray getMoves() const;
+  	template<Color color> inline MoveArray<color> getMoves() const; //Calls Chess::genMove and puts it in a nice struct
     template<Color color> void makeMove(Move move);
     template<Color color> void unmakeMove(Move move);
 
@@ -324,9 +329,7 @@ void Chess::unmakeMove(Move move) {
 }
 
 template<Color color>
-MoveArray Chess::getMoves() const {
-	MoveArray legal_moves;
-
+Move* Chess::genMove(Move* legal_moves) const {
 	Bitboard bb; //Temp bitboard used for whatever
 	Bitboard moves; //Temp bitboard to store moves
     int pos; //Temp int for storing positions
@@ -416,7 +419,7 @@ MoveArray Chess::getMoves() const {
                             if ((sliding_moves(all ^ (bb & -bb) ^ get_single_bitboard(history[depth].en_passant_square), rook_masks_horizontal[king_square], get_single_bitboard(king_square))
                                 & (get_bitboard(Queen, ~color) | get_bitboard(Rook, ~color))) == Bitboard(0)) {
                                 
-                                legal_moves.push_back(Move(bitScanForward(bb), history[depth].en_passant_square + shift, EN_PASSANT));
+                                *legal_moves++ = Move(bitScanForward(bb), history[depth].en_passant_square + shift, EN_PASSANT);
 
                             }
                         
@@ -438,7 +441,7 @@ MoveArray Chess::getMoves() const {
 
                     //Add capture moves to the vector
                     while (bb) {
-                        legal_moves.push_back(Move(bitScanForward(bb), pos, CAPTURE)); // Will always only need to add one move per piece
+                        *legal_moves++ = Move(bitScanForward(bb), pos, CAPTURE); // Will always only need to add one move per piece
                         bb &= bb - 1; //Reset ls1b
                     }
                     
@@ -470,9 +473,9 @@ MoveArray Chess::getMoves() const {
                 ((danger | all) & king_castle_spaces<color, CASTLE_SHORT>()))) {
 
                 if constexpr (color == WHITE) {
-                    legal_moves.push_back(Move(4, 6, CASTLE_SHORT));
+                    *legal_moves++ = Move(4, 6, CASTLE_SHORT);
                 } else {
-                    legal_moves.push_back(Move(60, 62, CASTLE_SHORT));
+                    *legal_moves++ = Move(60, 62, CASTLE_SHORT);
                 }
 
             }
@@ -483,9 +486,9 @@ MoveArray Chess::getMoves() const {
                 (((danger & ~long_castle_knight<color>()) | all) & king_castle_spaces<color, CASTLE_LONG>()))) {
 
                 if constexpr (color == WHITE) {
-                    legal_moves.push_back(Move(4, 2, CASTLE_LONG));
+                    *legal_moves++ = Move(4, 2, CASTLE_LONG);
                 } else {
-                    legal_moves.push_back(Move(60, 58, CASTLE_LONG));
+                    *legal_moves++ = Move(60, 58, CASTLE_LONG);
                 }
 
             }
@@ -504,20 +507,20 @@ MoveArray Chess::getMoves() const {
 					moves = ((bb & -bb) << 8) & quiet_mask & ray_masks[king_square][pos]; //Single pawn push
 					//If single push is in the direction of the pin, the second push will be as well
 					if (((moves & Bitboard(0xFF0000)) << 8) & quiet_mask) { //Double pawn push generated off of single pawn push
-						legal_moves.push_back(Move(pos, pos + 16, DOUBLE_PUSH));
+						*legal_moves++ = Move(pos, pos + 16, DOUBLE_PUSH);
 					}
 					if (moves & quiet_mask) { //Add single pawn push
-						legal_moves.push_back(Move(pos, pos + 8, QUIET));
+						*legal_moves++ = Move(pos, pos + 8, QUIET);
 					}
 
 				} else {
 					moves = ((bb & -bb) >> 8) & quiet_mask & ray_masks[king_square][pos]; //Single pawn push
 					//If single push is in the direction of the pin, the second push will be as well
 					if (((moves & Bitboard(0xFF0000000000)) >> 8) & quiet_mask) { //Double pawn push generated off of single pawn push
-						legal_moves.push_back(Move(pos, pos - 16, DOUBLE_PUSH));
+						*legal_moves++ = Move(pos, pos - 16, DOUBLE_PUSH);
 					}
 					if (moves & quiet_mask) { //Add single pawn push
-						legal_moves.push_back(Move(pos, pos - 8, QUIET));
+						*legal_moves++ = Move(pos, pos - 8, QUIET);
 					}
 				}
                 
@@ -528,11 +531,11 @@ MoveArray Chess::getMoves() const {
                 //Handle en passants
                 if constexpr (color == WHITE) {
                     if ((moves >> 8) & get_single_bitboard(history[depth].en_passant_square)) {
-                        legal_moves.push_back(Move(pos, history[depth].en_passant_square + 8, EN_PASSANT)); //Only one en passant can be possible per turn
+                        *legal_moves++ = Move(pos, history[depth].en_passant_square + 8, EN_PASSANT); //Only one en passant can be possible per turn
                     }
                 } else {
                     if ((moves << 8) & get_single_bitboard(history[depth].en_passant_square)) {
-                        legal_moves.push_back(Move(pos, history[depth].en_passant_square - 8, EN_PASSANT)); //Only one en passant can be possible per turn
+                        *legal_moves++ = Move(pos, history[depth].en_passant_square - 8, EN_PASSANT); //Only one en passant can be possible per turn
                     }
                 }
                 bb &= bb - 1;
@@ -549,7 +552,7 @@ MoveArray Chess::getMoves() const {
 				//Add captures
 				//There's a max of one capture possible for pinned pieces
 				if (moves & capture_mask) {
-					legal_moves.push_back(Move(pos, bitScanForward(moves & capture_mask), CAPTURE));
+					*legal_moves++ = Move(pos, bitScanForward(moves & capture_mask), CAPTURE);
 				}
 				bb &= bb - 1;
 			}
@@ -563,7 +566,7 @@ MoveArray Chess::getMoves() const {
 				//Add captures
 				//There's a max of one capture possible for pinned pieces
 				if (moves & capture_mask) {
-					legal_moves.push_back(Move(pos, bitScanForward(moves & capture_mask), CAPTURE));
+					*legal_moves++ = Move(pos, bitScanForward(moves & capture_mask), CAPTURE);
 				}
 				bb &= bb - 1;
 			}
@@ -584,22 +587,22 @@ MoveArray Chess::getMoves() const {
 		
 		while (bb) {
 			pos = bitScanForward(bb);
-			legal_moves.push_back(Move(pos - 8, pos));
+			*legal_moves++ = Move(pos - 8, pos);
 			bb &= bb - 1;
 		}
 
         while (promotions) {
             pos = bitScanForward(promotions);
-            legal_moves.push_back(Move(pos - 8, pos, PROMOTION_KNIGHT));
-            legal_moves.push_back(Move(pos - 8, pos, PROMOTION_BISHOP));
-            legal_moves.push_back(Move(pos - 8, pos, PROMOTION_ROOK));
-            legal_moves.push_back(Move(pos - 8, pos, PROMOTION_QUEEN));
+            *legal_moves++ = Move(pos - 8, pos, PROMOTION_KNIGHT);
+            *legal_moves++ = Move(pos - 8, pos, PROMOTION_BISHOP);
+            *legal_moves++ = Move(pos - 8, pos, PROMOTION_ROOK);
+            *legal_moves++ = Move(pos - 8, pos, PROMOTION_QUEEN);
             promotions &= promotions - 1;
         }
 
 		while (moves) {
 			pos = bitScanForward(moves);
-			legal_moves.push_back(Move(pos - 16, pos, DOUBLE_PUSH));
+			*legal_moves++ = Move(pos - 16, pos, DOUBLE_PUSH);
 			moves &= moves - 1;
 		}
 
@@ -612,22 +615,22 @@ MoveArray Chess::getMoves() const {
 
 		while (bb) {
 			pos = bitScanForward(bb);
-			legal_moves.push_back(Move(pos + 8, pos));
+			*legal_moves++ = Move(pos + 8, pos);
 			bb &= bb - 1;
 		}
 
         while (promotions) {
             pos = bitScanForward(promotions);
-            legal_moves.push_back(Move(pos + 8, pos, PROMOTION_KNIGHT));
-            legal_moves.push_back(Move(pos + 8, pos, PROMOTION_BISHOP));
-            legal_moves.push_back(Move(pos + 8, pos, PROMOTION_ROOK));
-            legal_moves.push_back(Move(pos + 8, pos, PROMOTION_QUEEN));
+            *legal_moves++ = Move(pos + 8, pos, PROMOTION_KNIGHT);
+            *legal_moves++ = Move(pos + 8, pos, PROMOTION_BISHOP);
+            *legal_moves++ = Move(pos + 8, pos, PROMOTION_ROOK);
+            *legal_moves++ = Move(pos + 8, pos, PROMOTION_QUEEN);
             promotions &= promotions - 1;
         }
 
 		while (moves) {
 			pos = bitScanForward(moves);
-			legal_moves.push_back(Move(pos + 16, pos, DOUBLE_PUSH));
+			*legal_moves++ = Move(pos + 16, pos, DOUBLE_PUSH);
 			moves &= moves - 1;
 		}
 
@@ -653,7 +656,7 @@ MoveArray Chess::getMoves() const {
             if ((sliding_moves(all ^ (bb & -bb) ^ get_single_bitboard(history[depth].en_passant_square), rook_masks_horizontal[king_square], get_single_bitboard(king_square))
                 & (get_bitboard(Queen, ~color) | get_bitboard(Rook, ~color))) == Bitboard(0)) {
                 
-                legal_moves.push_back(Move(bitScanForward(bb), history[depth].en_passant_square + shift, EN_PASSANT));
+                *legal_moves++ = Move(bitScanForward(bb), history[depth].en_passant_square + shift, EN_PASSANT);
 
             }
            
@@ -692,5 +695,11 @@ MoveArray Chess::getMoves() const {
     }
 
     return legal_moves;
+}
 
+template<Color color>
+inline MoveArray<color> Chess::getMoves() const {
+    MoveArray<color> moves;
+    moves.last = this->genMove(moves.arr);
+    return moves;
 }

@@ -117,16 +117,15 @@ struct Move {
 
 };
 
-constexpr size_t MOVE_VECTOR_SIZE = 1000;
+constexpr size_t MOVE_VECTOR_SIZE = 256;
 
+template<Color color>
 struct MoveArray {
   private:
     Move arr[MOVE_VECTOR_SIZE];
     Move *last;
   public:
-    MoveArray() : last(arr) {}
-
-    inline Move* begin() {
+    inline const Move* begin() const {
         return arr;
     }
 
@@ -138,10 +137,8 @@ struct MoveArray {
         return last - arr;
     }
 
-    inline void push_back(Move move) {
-        arr[size()] = move;
-        last++;
-    }
+    friend class Chess;
+
 };
 
 inline Bitboard sliding_moves(Bitboard occupancy, Bitboard mask, Bitboard piece_square_bitboard) {
@@ -187,21 +184,21 @@ inline Bitboard get_attacks<King>(int pos_idx, Bitboard occupancy) {
 }
 
 template<Flag flag = QUIET>
-inline void add_moves(uint8_t piece_pos, Bitboard move_bitboard, MoveArray &moves) {
+inline void add_moves(uint8_t piece_pos, Bitboard move_bitboard, Move* &moves) {
     while (move_bitboard) {
-        moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), flag));
+        *moves++ = Move(piece_pos, bitScanForward(move_bitboard), flag);
         move_bitboard &= move_bitboard - 1;
     }
 }
 
 //Used to add all capture promotions
 template<>
-inline void add_moves<PROMOTION_CAPTURE>(uint8_t piece_pos, Bitboard move_bitboard, MoveArray &moves) {
+inline void add_moves<PROMOTION_CAPTURE>(uint8_t piece_pos, Bitboard move_bitboard, Move* &moves) {
     while (move_bitboard) {
-        moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_CAPTURE_KNIGHT));
-        moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_CAPTURE_BISHOP));
-        moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_CAPTURE_ROOK));
-        moves.push_back(Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_CAPTURE_QUEEN));
+        *moves++ = Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_CAPTURE_KNIGHT);
+        *moves++ = Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_CAPTURE_BISHOP);
+        *moves++ = Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_CAPTURE_ROOK);
+        *moves++ = Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_CAPTURE_QUEEN);
         move_bitboard &= move_bitboard - 1;
     }
 }
