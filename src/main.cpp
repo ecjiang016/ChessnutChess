@@ -7,6 +7,7 @@
 using std::string, std::skipws;
 
 int main() {
+    Magic::initializeTables();
     Chess game;
     Color color = WHITE;
 
