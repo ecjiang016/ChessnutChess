@@ -181,10 +181,10 @@ namespace Magic {
         for (int sq = 0; sq < 64; sq++) {
             Bitboard mask = (piece_type == Bishop) ? bishop_masks[sq] : rook_masks[sq];
             Bitboard magic = (piece_type == Bishop) ? bishop_magics[sq] : rook_magics[sq];
-            uint8_t mask_pop = (piece_type == Bishop) ? bishop_shifts[sq] : rook_shifts[sq];
+            uint8_t mask_pop = pop_count(mask);
             for (int i = 0; i < (1 << mask_pop); i++) {
                 Bitboard occupancy = getOccupancy(i, mask);
-                Bitboard index = (occupancy * magic) >> mask_pop;
+                Bitboard index = (occupancy * magic) >> ((piece_type == Bishop) ? bishop_shifts[sq] : rook_shifts[sq]);
                 Bitboard attacks = HQ_attacks<piece_type>(sq, occupancy);
                 if constexpr (piece_type == Bishop) {
                     bishop_attacks[sq][index] = attacks;
@@ -196,9 +196,7 @@ namespace Magic {
     }
 
     void initializeTables() {
-        std::cout << "Bishop" << std::endl;
         initializeSingleTable<Bishop>();
-        std::cout << "Rook" << std::endl;
         initializeSingleTable<Rook>();
     }
 
