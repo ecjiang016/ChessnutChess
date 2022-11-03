@@ -215,7 +215,7 @@ namespace Magic {
         Bitboard index_cache[CACHE_SIZE]; //Stores already occupied indices and the corresponding attack bitboard.
                                           //The biggest possible index is 2^9 for bishops and 2^12 for rooks
         while (magics[63] == 0) {
-            for (int square = 0; square < CACHE_SIZE; square++) {
+            for (int square = 0; square < 64; square++) {
                 Bitboard magic = random() & random() & random();
                 Bitboard mask = (piece_type == Bishop) ? bishop_masks[square] : rook_masks[square];
                 for (int i = 0; i < CACHE_SIZE; i++) index_cache[i] = Bitboard(-1); //Clear cache by setting all bits. An attack can be empty but cannot be all spaces.
