@@ -11,7 +11,7 @@ constexpr size_t MAX_GAME_LENGTH = 5949;
 struct History {
   public:
 	//Stores information that the chess game needs to move or undo moves
-	uint8_t en_passant_square; //Index of the pawn that can be en passant captured
+	Square en_passant_square; //Index of the pawn that can be en passant captured
 	Piece capture; //Captured piece for undoing moves
     Bitboard castling;
     /*
@@ -333,13 +333,13 @@ template<Color color>
 Move* Chess::genMove(Move* legal_moves) const {
 	Bitboard bb; //Temp bitboard used for whatever
 	Bitboard moves; //Temp bitboard to store moves
-    int pos; //Temp int for storing positions
+    Square pos; //Temp int for storing positions
 
 	const Bitboard friendly = all_bitboards<color>();
 	const Bitboard enemy = all_bitboards<~color>();
 	const Bitboard all = friendly | enemy;
 	
-	const int king_square = bitScanForward(get_bitboard(King, color));
+	const Square king_square = bitScanForward(get_bitboard(King, color));
 	
 	//Check for pins and checkers
 	Bitboard checkers = 0;

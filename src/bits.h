@@ -58,6 +58,6 @@ const uint64_t debruijn64 = uint64_t(0x03f79d71b4cb0a89);
  * @precondition bb != 0
  * @return index (0..63) of least significant one bit
  */
-inline int bitScanForward(Bitboard bb) {
+inline uint8_t bitScanForward(Bitboard bb) {
    return index64[((bb ^ (bb-1)) * debruijn64) >> 58];
 }

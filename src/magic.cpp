@@ -3,6 +3,8 @@
 #include <random>
 #include <iomanip>
 
+typedef uint8_t Square;
+
 const Bitboard Magic::bishop_magics[64] = {
     0x2210200204002020,
     0x2008100080810900,
@@ -147,13 +149,13 @@ inline Bitboard sliding_moves(Bitboard occupancy, Bitboard mask, Bitboard piece_
 }
 
 template<PieceType = Bishop>
-inline Bitboard HQ_attacks(int pos_idx, Bitboard occupancy) {
+inline Bitboard HQ_attacks(Square pos_idx, Bitboard occupancy) {
     return sliding_moves(occupancy, bishop_masks_diag1[pos_idx], get_single_bitboard(pos_idx)) | 
            sliding_moves(occupancy, bishop_masks_diag2[pos_idx], get_single_bitboard(pos_idx));
 }
 
 template<>
-inline Bitboard HQ_attacks<Rook>(int pos_idx, Bitboard occupancy) {
+inline Bitboard HQ_attacks<Rook>(Square pos_idx, Bitboard occupancy) {
     return sliding_moves(occupancy, rook_masks_horizontal[pos_idx], get_single_bitboard(pos_idx)) | 
            sliding_moves(occupancy, rook_masks_vertical[pos_idx],   get_single_bitboard(pos_idx));
 }
@@ -178,7 +180,7 @@ namespace Magic {
 
     template<PieceType piece_type>
     void initializeSingleTable() {
-        for (int sq = 0; sq < 64; sq++) {
+        for (Square sq = 0; sq <= 63; sq++) {
             Bitboard mask = (piece_type == Bishop) ? bishop_masks[sq] : rook_masks[sq];
             Bitboard magic = (piece_type == Bishop) ? bishop_magics[sq] : rook_magics[sq];
             uint8_t mask_pop = pop_count(mask);
@@ -216,7 +218,7 @@ namespace Magic {
         Bitboard index_cache[CACHE_SIZE]; //Stores already occupied indices and the corresponding attack bitboard.
                                           //The biggest possible index is 2^9 for bishops and 2^12 for rooks
         while (magics[63] == 0) {
-            for (int square = 0; square < 64; square++) {
+            for (Square square = 0; square <= 63; square++) {
                 while (true) {
                     magic = random() & random() & random();
                     Bitboard mask = (piece_type == Bishop) ? bishop_masks[square] : rook_masks[square];

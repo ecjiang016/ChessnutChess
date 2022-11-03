@@ -4,10 +4,12 @@
 #include "masks.h"
 #include "magic.h"
 
+typedef uint8_t Square;
+
 extern const std::string index_to_string[64];
 
-inline int string_to_index(std::string str) {
-    return ((str[1] - '1') * 8) + (str[0] - 'a');
+inline Square string_to_index(std::string str) {
+    return Square(((str[1] - '1') * 8) + (str[0] - 'a'));
 }
 
 enum Flag : uint16_t {
@@ -38,11 +40,11 @@ struct Move {
   public:
     inline Move() : move(0) {}
 
-    inline Move(uint8_t from, uint8_t to) {
+    inline Move(Square from, Square to) {
         move = QUIET | (from << 6) | to;
     }
 
-    inline Move(int from, int to, Flag flag) {
+    inline Move(Square from, Square to, Flag flag) {
         move = flag | (from << 6) | to;
     }
 
@@ -54,11 +56,11 @@ struct Move {
         move = flag | ((((uci[1] - '1') * 8) + (uci[0] - 'a')) << 6) | ((uci[3] - '1') * 8) + (uci[2] - 'a');
     }
 
-    inline uint8_t from() const {
+    inline Square from() const {
         return (move >> 6) & 0b111111;
     }
 
-    inline uint8_t to() const {
+    inline Square to() const {
         return move & 0b111111;
     }
 
@@ -115,32 +117,32 @@ inline Bitboard pawn_attacks(Bitboard pawns) {
 }
 
 template<PieceType = Knight>
-inline Bitboard get_attacks(int pos_idx, Bitboard occupancy) {
+inline Bitboard get_attacks(Square pos_idx, Bitboard occupancy) {
     return knight_masks[pos_idx];
 }
 
 template<>
-inline Bitboard get_attacks<Bishop>(int pos_idx, Bitboard occupancy) {
+inline Bitboard get_attacks<Bishop>(Square pos_idx, Bitboard occupancy) {
     return Magic::bishop_attacks[pos_idx][((bishop_masks[pos_idx] & occupancy) * Magic::bishop_magics[pos_idx]) >> Magic::bishop_shifts[pos_idx]];
 }
 
 template<>
-inline Bitboard get_attacks<Rook>(int pos_idx, Bitboard occupancy) {
+inline Bitboard get_attacks<Rook>(Square pos_idx, Bitboard occupancy) {
     return Magic::rook_attacks[pos_idx][((rook_masks[pos_idx] & occupancy) * Magic::rook_magics[pos_idx]) >> Magic::rook_shifts[pos_idx]];
 }
 
 template<>
-inline Bitboard get_attacks<Queen>(int pos_idx, Bitboard occupancy) {
+inline Bitboard get_attacks<Queen>(Square pos_idx, Bitboard occupancy) {
     return get_attacks<Bishop>(pos_idx, occupancy) | get_attacks<Rook>(pos_idx, occupancy);
 }
 
 template<>
-inline Bitboard get_attacks<King>(int pos_idx, Bitboard occupancy) {
+inline Bitboard get_attacks<King>(Square pos_idx, Bitboard occupancy) {
     return king_masks[pos_idx];
 }
 
 template<Flag flag = QUIET>
-inline void add_moves(uint8_t piece_pos, Bitboard move_bitboard, Move* &moves) {
+inline void add_moves(Square piece_pos, Bitboard move_bitboard, Move* &moves) {
     while (move_bitboard) {
         *moves++ = Move(piece_pos, bitScanForward(move_bitboard), flag);
         move_bitboard &= move_bitboard - 1;
@@ -149,7 +151,7 @@ inline void add_moves(uint8_t piece_pos, Bitboard move_bitboard, Move* &moves) {
 
 //Used to add all capture promotions
 template<>
-inline void add_moves<PROMOTION_CAPTURE>(uint8_t piece_pos, Bitboard move_bitboard, Move* &moves) {
+inline void add_moves<PROMOTION_CAPTURE>(Square piece_pos, Bitboard move_bitboard, Move* &moves) {
     while (move_bitboard) {
         *moves++ = Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_CAPTURE_KNIGHT);
         *moves++ = Move(piece_pos, bitScanForward(move_bitboard), PROMOTION_CAPTURE_BISHOP);
