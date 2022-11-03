@@ -75,7 +75,6 @@ struct Move {
 
 constexpr size_t MOVE_VECTOR_SIZE = 256;
 
-template<Color color>
 struct MoveArray {
   private:
     Move arr[MOVE_VECTOR_SIZE];
@@ -91,6 +90,10 @@ struct MoveArray {
 
     inline size_t size() const {
         return last - arr;
+    }
+
+    inline Move &operator[](int index) {
+        return arr[index];
     }
 
     friend class Chess;
