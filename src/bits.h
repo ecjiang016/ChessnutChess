@@ -17,8 +17,9 @@ inline Bitboard bswap_64(Bitboard bb) {
 /**
  * Returns false if bit at bit_num is 0, othewise returns true
 */
-inline bool check_bit(Bitboard bitboard, int bit_num) {
-    return (bitboard & (Bitboard(1) << bit_num)) != 0;
+template<typename T>
+inline bool check_bit(T bitboard, int bit_num) {
+    return (bitboard & (T(1) << bit_num)) != 0;
 }
 
 inline int pop_count(Bitboard bitboard) {

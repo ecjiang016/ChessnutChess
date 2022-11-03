@@ -22,6 +22,49 @@ def convert_pos(pos):
 def compute_rook_masks():
     directions = [-1, 1, -8, 8]
     with open(FILE, "a") as f:
+        f.write("const Bitboard rook_masks[64] = {\n")
+
+        for pypos in range(64):
+            pos = convert_pos(pypos)
+            x = pos % 8
+            y = pos // 8
+            spaces_to_edge = [x, 7-x, y, 7-y]
+            board = np.zeros(64, dtype=int)
+            for d in range(4):
+                for space in range(1, spaces_to_edge[d]): #Skips the edge space
+                    check_pos = space * directions[d] + pos
+                    board[check_pos] = 1
+
+            f.write("    " + convert_to_hex_bitboard(board))
+
+            if pypos != 63: #Last item in list doesn't need a comma
+                f.write(",\n")
+            else:
+                f.write("\n")
+
+        f.write("};\n\n")
+
+        f.write("const Bitboard rook_masks_edge[64] = {\n")
+
+        for pypos in range(64):
+            pos = convert_pos(pypos)
+            x = pos % 8
+            y = pos // 8
+            spaces_to_edge = [x, 7-x, y, 7-y]
+            board = np.zeros(64, dtype=int)
+            for d in range(4):
+                if spaces_to_edge[d] > 0:
+                    board[(spaces_to_edge[d]) * directions[d] + pos] = 1
+
+            f.write("    " + convert_to_hex_bitboard(board))
+
+            if pypos != 63: #Last item in list doesn't need a comma
+                f.write(",\n")
+            else:
+                f.write("\n")
+
+        f.write("};\n\n")
+
         f.write("const Bitboard rook_masks_horizontal[64] = {\n")
 
         for pypos in range(64):
@@ -64,11 +107,54 @@ def compute_rook_masks():
                 f.write("\n")
 
         f.write("};\n\n")
+
         f.close()
         
 def compute_bishop_masks():
     directions = [-9, 9, -7, 7]
     with open(FILE, "a") as f:
+        f.write("const Bitboard bishop_masks[64] = {\n")
+
+        for pypos in range(64):
+            pos = convert_pos(pypos)
+            x = pos % 8
+            y = pos // 8
+            spaces_to_edge = [min(y, x), min(7-y, 7-x), min(y, 7-x), min(7-y, x)]
+            board = np.zeros(64, dtype=int)
+            f.write("    ")
+            for d in range(4):
+                for space in range(1, spaces_to_edge[d]):
+                    check_pos = space * directions[d] + pos
+                    board[check_pos] = 1
+            f.write(convert_to_hex_bitboard(board))
+
+            if pypos != 63: #Last item in list doesn't need a comma
+                f.write(",\n")
+            else:
+                f.write("\n")
+
+        f.write("};\n\n")
+
+        f.write("const Bitboard bishop_masks_edge[64] = {\n")
+
+        for pypos in range(64):
+            pos = convert_pos(pypos)
+            x = pos % 8
+            y = pos // 8
+            spaces_to_edge = [min(y, x), min(7-y, 7-x), min(y, 7-x), min(7-y, x)]
+            board = np.zeros(64, dtype=int)
+            f.write("    ")
+            for d in range(4):
+                if spaces_to_edge[d] > 0:
+                    board[(spaces_to_edge[d]) * directions[d] + pos] = 1
+            f.write(convert_to_hex_bitboard(board))
+            if pypos != 63: #Last item in list doesn't need a comma
+                f.write(",\n")
+            else:
+                f.write("\n")
+
+        f.write("};\n\n")
+
         f.write("const Bitboard bishop_masks_diag1[64] = {\n")
 
         for pypos in range(64):
@@ -111,6 +197,7 @@ def compute_bishop_masks():
                 f.write("\n")
 
         f.write("};\n\n")
+
         f.close()
 
 def compute_knight_masks():

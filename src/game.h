@@ -1,6 +1,7 @@
 #pragma once
-#include "piece.h"
 #include "bits.h"
+#include "piece.h"
+#include "moves.h"
 #include <vector>
 #include <string>
 
@@ -44,7 +45,7 @@ class Chess {
     Move* genMove(Move* legal_moves) const;
 
   public:
-  	template<Color color> inline MoveArray<color> getMoves() const; //Calls Chess::genMove and puts it in a nice struct
+  	template<Color color> inline MoveArray getMoves() const; //Calls Chess::genMove and puts it in a nice struct
     template<Color color> void makeMove(Move move);
     template<Color color> void unmakeMove(Move move);
 
@@ -698,8 +699,8 @@ Move* Chess::genMove(Move* legal_moves) const {
 }
 
 template<Color color>
-inline MoveArray<color> Chess::getMoves() const {
-    MoveArray<color> moves;
+inline MoveArray Chess::getMoves() const {
+    MoveArray moves;
     moves.last = this->genMove<color>(moves.arr);
     return moves;
 }
