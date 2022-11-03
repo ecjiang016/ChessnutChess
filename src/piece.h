@@ -1,6 +1,7 @@
 #pragma once
 #include "bits.h"
 #include "masks.h"
+#include "magic.h"
 #include <vector>
 
 extern const std::string index_to_string[64];
@@ -156,6 +157,20 @@ inline Bitboard pawn_attacks(Bitboard pawns) {
     }
 }
 
+//Attacks computed with hyperbola quintessence
+//Pretty much used to pre-compute moves for the faster magic bitboard move gen
+template<PieceType = Bishop>
+inline Bitboard HQ_attacks(int pos_idx, Bitboard occupancy) {
+    return sliding_moves(occupancy, bishop_masks_diag1[pos_idx], get_single_bitboard(pos_idx)) | 
+           sliding_moves(occupancy, bishop_masks_diag2[pos_idx], get_single_bitboard(pos_idx));
+}
+
+template<>
+inline Bitboard HQ_attacks<Rook>(int pos_idx, Bitboard occupancy) {
+    return sliding_moves(occupancy, rook_masks_horizontal[pos_idx], get_single_bitboard(pos_idx)) | 
+           sliding_moves(occupancy, rook_masks_vertical[pos_idx],   get_single_bitboard(pos_idx));
+}
+
 template<PieceType = Knight>
 inline Bitboard get_attacks(int pos_idx, Bitboard occupancy) {
     return knight_masks[pos_idx];
@@ -163,14 +178,12 @@ inline Bitboard get_attacks(int pos_idx, Bitboard occupancy) {
 
 template<>
 inline Bitboard get_attacks<Bishop>(int pos_idx, Bitboard occupancy) {
-    return sliding_moves(occupancy, bishop_masks_diag1[pos_idx], get_single_bitboard(pos_idx)) | 
-           sliding_moves(occupancy, bishop_masks_diag2[pos_idx], get_single_bitboard(pos_idx));
+    return Magic::bishop_attacks[pos_idx][((bishop_masks[pos_idx] & occupancy) * Magic::bishop_magics[pos_idx]) >> Magic::bishop_shifts[pos_idx]];
 }
 
 template<>
 inline Bitboard get_attacks<Rook>(int pos_idx, Bitboard occupancy) {
-    return sliding_moves(occupancy, rook_masks_horizontal[pos_idx], get_single_bitboard(pos_idx)) | 
-           sliding_moves(occupancy, rook_masks_vertical[pos_idx],   get_single_bitboard(pos_idx));
+    return Magic::rook_attacks[pos_idx][((rook_masks[pos_idx] & occupancy) * Magic::rook_magics[pos_idx]) >> Magic::rook_shifts[pos_idx]];
 }
 
 template<>
