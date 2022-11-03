@@ -196,7 +196,9 @@ namespace Magic {
     }
 
     void initializeTables() {
+        std::cout << "Bishop" << std::endl;
         initializeSingleTable<Bishop>();
+        std::cout << "Rook" << std::endl;
         initializeSingleTable<Rook>();
     }
 
@@ -219,12 +221,12 @@ namespace Magic {
                 Bitboard magic = random() & random() & random();
                 Bitboard mask = (piece_type == Bishop) ? bishop_masks[square] : rook_masks[square];
                 for (int i = 0; i < CACHE_SIZE; i++) index_cache[i] = Bitboard(-1); //Clear cache by setting all bits. An attack can be empty but cannot be all spaces.
-                int mask_pop = (piece_type == Bishop) ? bishop_shifts[square] : rook_shifts[square];
+                int mask_pop = pop_count(mask);
                 // Loop through all 2^n possible permutations of the mask where n is the number of bits set in the mask
                 bool working_magic = true;
                 for (int i = 0; i < (1 << mask_pop); i++) {
                     Bitboard occupancy = getOccupancy(i, mask);
-                    Bitboard index = (occupancy * magic) >> mask_pop;
+                    Bitboard index = (occupancy * magic) >> (64 - mask_pop);
                     Bitboard attacks = HQ_attacks<piece_type>(square, occupancy);
                     if (index_cache[index] != Bitboard(-1) && index_cache[index] != attacks) { //There is a collision and the contents are different
                         working_magic = false;
