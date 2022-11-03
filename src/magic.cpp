@@ -3,79 +3,7 @@
 #include <random>
 #include <iomanip>
 
-namespace Magic {
-
-    Bitboard getOccupancy(int perm_idx, Bitboard mask) { //Generates a permutation of the occupancy of mask
-        Bitboard out = 0;
-        int i = 0;
-        while (mask) {
-            Bitboard ls1b = mask & -mask;
-            mask ^= ls1b; 
-            if (check_bit(perm_idx, i))
-                out |= ls1b;
-            i++;
-        }
-        return out;
-    }
-
-    template<PieceType piece_type>
-    void findMagics() {
-        //Some stuff for generate random magics
-        std::random_device rd;
-        std::mt19937_64 rng(rd());
-        std::uniform_int_distribution<unsigned long long> dist(Bitboard(1), Bitboard(-1));
-        auto random = [&]() { return dist(rng); };
-
-        Bitboard magics[64];
-        for (int i = 0; i < 64; i++) magics[i] = 0;
-        Bitboard index_cache[4096]; //Stores already occupied indices and the corresponding attack bitboard. The biggest possible index is 2^12
-        while (magics[63] == 0) {
-            for (int square = 0; square < 64; square++) {
-                Bitboard magic = random() & random() & random();
-                Bitboard mask = (piece_type == Bishop) ? bishop_masks[square] : rook_masks[square];
-                for (int i = 0; i < 4096; i++) index_cache[i] = Bitboard(-1); //Clear cache by setting all bits. An attack can be empty but cannot be all spaces.
-                int mask_pop = pop_count(mask);
-                // Loop through all 2^n possible permutations of the mask where n is the number of bits set in the mask
-                bool working_magic = true;
-                for (int i = 0; i < (1 << mask_pop); i++) {
-                    Bitboard occupancy = getOccupancy(i, mask);
-                    Bitboard index = (occupancy * magic) >> (piece_type == Bishop) ? bishop_shifts[square] : rook_shifts[square];
-                    Bitboard attacks = get_attacks<piece_type>(square, occupancy);
-                    if (index_cache[index] != Bitboard(-1) && index_cache[index] != attacks) { //There is a collision and the contents are different
-                        working_magic = false;
-                        break;
-                    }
-                }
-
-                if (!working_magic)
-                    break;
-
-                magics[square] = magic;
-
-            }
-        }
-
-        for (int i = 0; i < 64; i++) {
-            std::cout << "    " << "0x" << std::setfill ('0') << std::setw(16) << std::hex << magics[i];
-            if (i != 63)
-                std::cout << ',';
-            std::cout << '\n';
-        }
-        std::cout << "};\n\n";
-
-    }
-
-    //Wrapper for findMagics()
-    void computeMagics() {
-        std::cout << "const Bitboard bishop_magics[64] = {\n";
-        findMagics<Bishop>();
-        std::cout << "const Bitboard rook_magics[64] = {\n";
-        findMagics<Rook>();
-    }
-
-}
-
-const Bitboard bishop_magics[64] = {
+const Bitboard Magic::bishop_magics[64] = {
     0x01a0901400450000,
     0x1400020806040020,
     0x0300020224000810,
@@ -142,7 +70,7 @@ const Bitboard bishop_magics[64] = {
     0x5040000020400000
 };
 
-const Bitboard rook_magics[64] = {
+const Bitboard Magic::rook_magics[64] = {
     0x04a0010260000000,
     0x062004800000030d,
     0x4002000000060021,
@@ -208,3 +136,102 @@ const Bitboard rook_magics[64] = {
     0x40000801a0100090,
     0x0040104002800803
 };
+
+namespace Magic {
+
+    Bitboard getOccupancy(int perm_idx, Bitboard mask) { //Generates a permutation of the occupancy of mask
+        Bitboard out = 0;
+        int i = 0;
+        while (mask) {
+            Bitboard ls1b = mask & -mask;
+            mask ^= ls1b; 
+            if (check_bit(perm_idx, i))
+                out |= ls1b;
+            i++;
+        }
+        return out;
+    }
+
+    template<PieceType piece_type>
+    void initializeSingleTable() {
+        for (int sq = 0; sq < 64; sq++) {
+            Bitboard mask = (piece_type == Bishop) ? bishop_masks[sq] : rook_masks[sq];
+            Bitboard magic = (piece_type == Bishop) ? bishop_magics[sq] : rook_magics[sq];
+            uint8_t mask_pop = (piece_type == Bishop) ? bishop_shifts[sq] : rook_shifts[sq];
+            for (int i = 0; i < (1 << mask_pop); i++) {
+                Bitboard occupancy = getOccupancy(i, mask);
+                Bitboard index = (occupancy * magic) >> mask_pop;
+                Bitboard attacks = HQ_attacks<piece_type>(sq, occupancy);
+                if constexpr (piece_type == Bishop) {
+                    bishop_attacks[sq][index] = attacks;
+                } else {
+                    rook_attacks[sq][index] = attacks;
+                }
+            }
+        }
+    }
+
+    void initializeTables() {
+        initializeSingleTable<Bishop>();
+        initializeSingleTable<Rook>();
+    }
+
+    template<PieceType piece_type>
+    void findMagics() {
+        //Some stuff for generate random magics
+        std::random_device rd;
+        std::mt19937_64 rng(rd());
+        std::uniform_int_distribution<unsigned long long> dist(Bitboard(1), Bitboard(-1));
+        auto random = [&]() { return dist(rng); };
+
+        Bitboard magics[64];
+        for (int i = 0; i < 64; i++) magics[i] = 0;
+
+        constexpr size_t CACHE_SIZE = (piece_type == Bishop) ? (1 << 9) : (1 << 12); 
+        Bitboard index_cache[CACHE_SIZE]; //Stores already occupied indices and the corresponding attack bitboard.
+                                          //The biggest possible index is 2^9 for bishops and 2^12 for rooks
+        while (magics[63] == 0) {
+            for (int square = 0; square < CACHE_SIZE; square++) {
+                Bitboard magic = random() & random() & random();
+                Bitboard mask = (piece_type == Bishop) ? bishop_masks[square] : rook_masks[square];
+                for (int i = 0; i < CACHE_SIZE; i++) index_cache[i] = Bitboard(-1); //Clear cache by setting all bits. An attack can be empty but cannot be all spaces.
+                int mask_pop = (piece_type == Bishop) ? bishop_shifts[square] : rook_shifts[square];
+                // Loop through all 2^n possible permutations of the mask where n is the number of bits set in the mask
+                bool working_magic = true;
+                for (int i = 0; i < (1 << mask_pop); i++) {
+                    Bitboard occupancy = getOccupancy(i, mask);
+                    Bitboard index = (occupancy * magic) >> mask_pop;
+                    Bitboard attacks = HQ_attacks<piece_type>(square, occupancy);
+                    if (index_cache[index] != Bitboard(-1) && index_cache[index] != attacks) { //There is a collision and the contents are different
+                        working_magic = false;
+                        break;
+                    }
+                }
+
+                if (!working_magic)
+                    break;
+
+                magics[square] = magic;
+
+            }
+        }
+
+        for (int i = 0; i < 64; i++) {
+            std::cout << "    " << "0x" << std::setfill ('0') << std::setw(16) << std::hex << magics[i];
+            if (i != 63)
+                std::cout << ',';
+            std::cout << '\n';
+        }
+        std::cout << "};\n\n";
+
+    }
+
+    //Wrapper for findMagics()
+    void computeMagics() {
+        std::cout << "const Bitboard Magic::bishop_magics[64] = {\n";
+        findMagics<Bishop>();
+        std::cout << "const Bitboard Magic::rook_magics[64] = {\n";
+        findMagics<Rook>();
+    }
+
+}
