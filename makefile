@@ -4,7 +4,7 @@ RM=rm -f
 PY=python3
 CPPFLAGS=-O3 -std=c++17
 
-SRCS = $(patsubst %,src/%,game.cpp piece.cpp bits.cpp masks.cpp perft.cpp uci.cpp magic.cpp)
+SRCS = $(patsubst %,src/%,game.cpp piece.cpp bits.cpp moves.cpp masks.cpp perft.cpp uci.cpp magic.cpp)
 OBJS = $(subst .cpp,.o,$(SRCS))
 
 all: tool
