@@ -160,8 +160,8 @@ inline Bitboard HQ_attacks<Rook>(int pos_idx, Bitboard occupancy) {
 
 namespace Magic {
 
-    Bitboard rook_attacks[64][512];
-    Bitboard bishop_attacks[64][4096];
+    Bitboard bishop_attacks[64][512];
+    Bitboard rook_attacks[64][4096];
 
     Bitboard getOccupancy(int perm_idx, Bitboard mask) { //Generates a permutation of the occupancy of mask
         Bitboard out = 0;

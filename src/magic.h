@@ -6,8 +6,8 @@
 namespace Magic {
     extern const Bitboard bishop_magics[64];
     extern const Bitboard rook_magics[64];
-    extern Bitboard rook_attacks[64][512];
-    extern Bitboard bishop_attacks[64][4096];
+    extern Bitboard bishop_attacks[64][512];
+    extern Bitboard rook_attacks[64][4096];
 
     const uint8_t bishop_shifts[64] = {
         58, 59, 59, 59, 59, 59, 59, 58,
