@@ -1,6 +1,7 @@
 #pragma once
-#include "piece.h"
 #include "bits.h"
+#include "piece.h"
+#include "moves.h"
 #include <vector>
 #include <string>
 

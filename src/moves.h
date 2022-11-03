@@ -2,6 +2,7 @@
 #include "bits.h"
 #include "piece.h"
 #include "masks.h"
+#include "magic.h"
 
 extern const std::string index_to_string[64];
 
@@ -101,7 +102,6 @@ inline Bitboard sliding_moves(Bitboard occupancy, Bitboard mask, Bitboard piece_
         bswap_64(bswap_64(occupancy & mask) - bswap_64(piece_square_bitboard))) & mask;
 }
 
-
 template<Color color>
 inline Bitboard pawn_attacks(Bitboard pawns) {
     if constexpr (color == WHITE) {
@@ -109,20 +109,6 @@ inline Bitboard pawn_attacks(Bitboard pawns) {
     } else {
         return ((pawns & ~LEFT_COLUMN) >> 9) | ((pawns & ~RIGHT_COLUMN) >> 7);
     }
-}
-
-//Attacks computed with hyperbola quintessence
-//Pretty much used to pre-compute moves for the faster magic bitboard move gen
-template<PieceType = Bishop>
-inline Bitboard HQ_attacks(int pos_idx, Bitboard occupancy) {
-    return sliding_moves(occupancy, bishop_masks_diag1[pos_idx], get_single_bitboard(pos_idx)) | 
-           sliding_moves(occupancy, bishop_masks_diag2[pos_idx], get_single_bitboard(pos_idx));
-}
-
-template<>
-inline Bitboard HQ_attacks<Rook>(int pos_idx, Bitboard occupancy) {
-    return sliding_moves(occupancy, rook_masks_horizontal[pos_idx], get_single_bitboard(pos_idx)) | 
-           sliding_moves(occupancy, rook_masks_vertical[pos_idx],   get_single_bitboard(pos_idx));
 }
 
 template<PieceType = Knight>

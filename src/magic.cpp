@@ -137,7 +137,31 @@ const Bitboard Magic::rook_magics[64] = {
     0x0040104002800803
 };
 
+//Attacks computed with hyperbola quintessence
+//Pretty much used to pre-compute moves for the faster magic bitboard move gen
+// sliding_moves is taken from moves.h and also put here to fix linking issues
+
+inline Bitboard sliding_moves(Bitboard occupancy, Bitboard mask, Bitboard piece_square_bitboard) {
+    return (((occupancy & mask) - piece_square_bitboard) ^
+        bswap_64(bswap_64(occupancy & mask) - bswap_64(piece_square_bitboard))) & mask;
+}
+
+template<PieceType = Bishop>
+inline Bitboard HQ_attacks(int pos_idx, Bitboard occupancy) {
+    return sliding_moves(occupancy, bishop_masks_diag1[pos_idx], get_single_bitboard(pos_idx)) | 
+           sliding_moves(occupancy, bishop_masks_diag2[pos_idx], get_single_bitboard(pos_idx));
+}
+
+template<>
+inline Bitboard HQ_attacks<Rook>(int pos_idx, Bitboard occupancy) {
+    return sliding_moves(occupancy, rook_masks_horizontal[pos_idx], get_single_bitboard(pos_idx)) | 
+           sliding_moves(occupancy, rook_masks_vertical[pos_idx],   get_single_bitboard(pos_idx));
+}
+
 namespace Magic {
+
+    Bitboard rook_attacks[64][512];
+    Bitboard bishop_attacks[64][4096];
 
     Bitboard getOccupancy(int perm_idx, Bitboard mask) { //Generates a permutation of the occupancy of mask
         Bitboard out = 0;
