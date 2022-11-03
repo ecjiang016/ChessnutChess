@@ -14,8 +14,12 @@ const Bitboard LEFT_TWO= 0x303030303030303;
 
 extern const Bitboard rook_masks[64];
 extern const Bitboard rook_masks_edge[64];
+extern const Bitboard rook_masks_horizontal[64];
+extern const Bitboard rook_masks_vertical[64];
 extern const Bitboard bishop_masks[64];
 extern const Bitboard bishop_masks_edge[64];
+extern const Bitboard bishop_masks_diag1[64];
+extern const Bitboard bishop_masks_diag2[64];
 extern const Bitboard knight_masks[64];
 extern const Bitboard king_masks[64];
 extern const Bitboard all_direction_masks[64];
