@@ -4,7 +4,7 @@ RM=rm -f
 PY=python3
 CPPFLAGS=-O3 -std=c++17
 
-SRCS = $(patsubst %,src/%,game.cpp piece.cpp bits.cpp masks.cpp perft.cpp uci.cpp)
+SRCS = $(patsubst %,src/%,game.cpp piece.cpp bits.cpp masks.cpp perft.cpp uci.cpp magic.cpp)
 OBJS = $(subst .cpp,.o,$(SRCS))
 
 all: tool
@@ -14,6 +14,9 @@ tool: $(OBJS)
 
 cython:
 	$(PY) GUI/setup.py build_ext
+
+magic: src/bits.o src/piece.o src/masks.o src/magic.o
+	$(CXX) $(CPPFLAGS) src/bits.o src/piece.o src/masks.o src/magic.o src/generate_magics.cpp -o generate_magics.exe
 
 clean:
 	$(RM) $(OBJS)
