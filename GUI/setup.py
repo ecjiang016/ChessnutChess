@@ -8,6 +8,8 @@ setup(ext_modules=cythonize(
         "./src/masks.cpp",
         "./src/bits.cpp",
         "./src/piece.cpp",
+        "./src/moves.cpp",
+        "./src/magic.cpp",
         "./src/game.cpp"
         ],
         language="c++",
