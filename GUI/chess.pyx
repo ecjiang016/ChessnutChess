@@ -61,12 +61,17 @@ cdef extern from "../src/game.h":
         Flag flag()
         string cUCI "UCI"()
 
+    cdef cppclass MoveArray:
+        MoveArray() except +
+        int size()
+        Move operator[](int)
+
     cdef cppclass cChess "Chess":
         cChess() except +
         cChess(string fen) except +
 
-        vector[Move] getMoves_white "getMoves<WHITE>"()
-        vector[Move] getMoves_black "getMoves<BLACK>"()
+        MoveArray getMoves_white "getMoves<WHITE>"()
+        MoveArray getMoves_black "getMoves<BLACK>"()
         void makeMove_white "makeMove<WHITE>"(Move move)
         void makeMove_black "makeMove<BLACK>"(Move move)
         void unmakeMove_white "unmakeMove<WHITE>"(Move move)
@@ -98,7 +103,7 @@ cdef class Chess:
 
     def getAllMoves(self):
         move_list = []
-        cdef vector[Move] allMoves = self.cobj.getMoves_white() if self.color == WHITE else self.cobj.getMoves_black()
+        cdef MoveArray allMoves = self.cobj.getMoves_white() if self.color == WHITE else self.cobj.getMoves_black()
         cdef int i
         cdef Move move
 
@@ -111,7 +116,7 @@ cdef class Chess:
     def pieceMoves(self, piece_x, piece_y):
         move_list = []
         piece_coord = coords_2D_to_1D(piece_x, piece_y)
-        cdef vector[Move] allMoves = self.cobj.getMoves_white() if self.color == WHITE else self.cobj.getMoves_black()
+        cdef MoveArray allMoves = self.cobj.getMoves_white() if self.color == WHITE else self.cobj.getMoves_black()
         cdef Move move
         for i in range(allMoves.size()):
             move = allMoves[i]
@@ -123,7 +128,7 @@ cdef class Chess:
     def checkLegalMove(self, old_x, old_y, new_x, new_y):
         old_c = coords_2D_to_1D(old_x, old_y)
         new_c = coords_2D_to_1D(new_x, new_y)
-        cdef vector[Move] allMoves = self.cobj.getMoves_white() if self.color == WHITE else self.cobj.getMoves_black()
+        cdef MoveArray allMoves = self.cobj.getMoves_white() if self.color == WHITE else self.cobj.getMoves_black()
         cdef Move move
         for i in range(allMoves.size()):
             move = allMoves[i]
@@ -135,7 +140,7 @@ cdef class Chess:
     def makeMove(self, old_x, old_y, new_x, new_y, promotion = None):
         old_c = coords_2D_to_1D(old_x, old_y)
         new_c = coords_2D_to_1D(new_x, new_y)
-        cdef vector[Move] allMoves = self.cobj.getMoves_white() if self.color == WHITE else self.cobj.getMoves_black()
+        cdef MoveArray allMoves = self.cobj.getMoves_white() if self.color == WHITE else self.cobj.getMoves_black()
         cdef Move move
         for i in range(allMoves.size()):
             move = allMoves[i]
