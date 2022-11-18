@@ -48,6 +48,7 @@ class Chess {
   	template<Color color> inline MoveArray getMoves() const; //Calls Chess::genMove and puts it in a nice struct
     template<Color color> void makeMove(Move move);
     template<Color color> void unmakeMove(Move move);
+    template<Color color> inline bool inCheck() const;
 
 	inline std::vector<Piece> getMailbox() const {
         return std::vector<Piece>(mailbox, mailbox + 64);
@@ -703,4 +704,39 @@ inline MoveArray Chess::getMoves() const {
     MoveArray moves;
     moves.last = this->genMove<color>(moves.arr);
     return moves;
+}
+
+template<Color color>
+inline bool Chess::inCheck() const {
+    Bitboard bb;
+    Bitboard danger = Bitboard(0);
+    Bitboard occ = all_bitboards<WHITE>() | all_bitboards<BLACK>();
+
+    danger |= pawn_attacks<~color>(get_bitboard(Pawn, ~color));
+
+    //Diagonal attackers
+	bb = get_bitboard(Bishop, ~color) | get_bitboard(Queen, ~color);
+	while (bb) {
+        danger |= get_attacks<Bishop>(bitScanForward(bb), occ);
+        bb &= bb - 1;
+    }
+
+	//Straight attackers 
+	bb = get_bitboard(Rook, ~color) | get_bitboard(Queen, ~color);
+	while (bb) {
+        danger |= get_attacks<Rook>(bitScanForward(bb), occ);
+        bb &= bb - 1;
+    }
+
+	//Knights
+	bb = get_bitboard(Knight, ~color);
+	while (bb) {
+        danger |= get_attacks<Knight>(bitScanForward(bb), occ);
+        bb &= bb - 1;
+    }
+
+    //There's no way a king can check a king
+
+    return (get_bitboard(King, color) & danger) != Bitboard(0);
+
 }
