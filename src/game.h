@@ -2,7 +2,7 @@
 #include "bits.h"
 #include "piece.h"
 #include "moves.h"
-#include <vector>
+#include <array>
 #include <string>
 
 const std::string starting_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -50,8 +50,16 @@ class Chess {
     template<Color color> void unmakeMove(Move move);
     template<Color color> inline bool inCheck() const;
 
-	inline std::vector<Piece> getMailbox() const {
-        return std::vector<Piece>(mailbox, mailbox + 64);
+	inline std::array<Piece, 64> getMailbox() const {
+        std::array<Piece, 64> arr;
+        for (Square sq = 0; sq <= 63; sq++)
+            arr[sq] = mailbox[sq];
+        return arr;
+    }
+
+    //For accessing the mailbox without needing to copy all the data
+    inline Piece getSquare(Square sq) { 
+        return mailbox[sq];
     }
     
 	Color setFen(std::string fen);
