@@ -2,7 +2,7 @@ C=gcc
 CXX=g++
 RM=rm -f
 PY=python3
-CPPFLAGS=-O3 -std=c++17
+CPPFLAGS=-O3 -std=c++20
 
 SRCS = $(patsubst %,src/%,game.cpp piece.cpp bits.cpp moves.cpp masks.cpp perft.cpp uci.cpp magic.cpp)
 OBJS = $(subst .cpp,.o,$(SRCS))
