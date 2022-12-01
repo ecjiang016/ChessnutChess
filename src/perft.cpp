@@ -2,38 +2,55 @@
 #include <chrono>
 #include <algorithm> 
 
-template<Color color>
+template<class GameState state>
 uint64_t search(int depth, Chess *game) {
     if (depth == 0) {
         return 1;
     }
 
-    MoveArray moves = game->getMoves<color>();
+    MoveArray moves = game->getMoves<state>();
 
     uint64_t positions = 0;
 
     for (Move move : moves) {
-        game->makeMove<color>(move);
-        positions += search<~color>(depth-1, game);
-        game->unmakeMove<color>(move);
+        game->makeMove<state>(move);
+
+        switch (move.flag()) {
+            case DOUBLE_PUSH:
+                positions += search<state.next<DOUBLE_PUSH>()>(depth-1, game);
+                break;
+            default:
+                positions += search<state.next<QUIET>()>(depth-1, game);
+                break;
+        }
+
+        game->unmakeMove<state>(move);
     }
 
     return positions;
 }
 
-template<Color color>
+template<class GameState state>
 uint64_t search(int depth, Chess game, bool extra_info = true) {
     if (depth == 0) {
         return 1;
     }
 
+    uint64_t move_positions;
     uint64_t positions = 0;
     std::vector<std::string> moves_in_pos;
 
-    for (Move move : game.getMoves<color>()) {
-        game.makeMove<color>(move);
-        uint64_t move_positions = search<~color>(depth-1, &game);
-        game.unmakeMove<color>(move);
+    for (Move move : game.getMoves<state>()) {
+        game.makeMove<state>(move);
+        switch (move.flag()) {
+            case DOUBLE_PUSH:
+                move_positions = search<state.next<DOUBLE_PUSH>()>(depth-1, &game);
+                break;
+            default:
+                move_positions = search<state.next<QUIET>()>(depth-1, &game);
+                break;
+        }
+        game.unmakeMove<state>(move);
         
         positions += move_positions;
         moves_in_pos.push_back(move.UCI() + ": " + std::to_string(move_positions));
@@ -53,7 +70,7 @@ void perft(Chess game, Color color, unsigned int depth) {
         game.print();
         for (int i = 0; i <= depth; i++) {
             auto start = std::chrono::high_resolution_clock::now();
-            auto positions = color == WHITE ? search<WHITE>(i, game) : search<BLACK>(i, game);
+            auto positions = color == WHITE ? search<GameState(WHITE, false)>(i, game) : search<GameState(BLACK, false)>(i, game);
             auto end = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double, std::milli> sec = end - start;
             std::cout << '\n';
@@ -63,7 +80,7 @@ void perft(Chess game, Color color, unsigned int depth) {
         }
     } else {
         //Uses the search which takes in a pointer so it avoids the debugging prints
-        auto positions = color == WHITE ? search<WHITE>(depth, &game) : search<BLACK>(depth, &game);
+        auto positions = color == WHITE ? search<GameState(WHITE, false)>(depth, &game) : search<GameState(BLACK, false)>(depth, &game);
         std::cout << positions << std::endl;
     }
 }

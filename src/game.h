@@ -8,6 +8,24 @@
 const std::string starting_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 constexpr size_t MAX_GAME_LENGTH = 5949;
 
+struct GameState {
+  public:
+    Color color;
+    bool en_passant;
+    constexpr GameState(Color color_, bool en_passant_) : color(color_), en_passant(en_passant_) {}
+
+    template<Flag flag>
+    constexpr GameState next() const {
+        switch (flag) {
+            case DOUBLE_PUSH:
+                return GameState(~color, true);
+            default:
+                return GameState(~color, false);
+        }
+    }
+
+};
+
 struct History {
   public:
 	//Stores information that the chess game needs to move or undo moves
@@ -41,13 +59,13 @@ class Chess {
 
     //Actual move generation.
     //The result is then put in a MoveArray stuct for convience when getMoves() is called
-    template<Color color>
+    template<GameState game_state>
     Move* genMove(Move* legal_moves) const;
 
   public:
-  	template<Color color> inline MoveArray getMoves() const; //Calls Chess::genMove and puts it in a nice struct
-    template<Color color> void makeMove(Move move);
-    template<Color color> void unmakeMove(Move move);
+    template<GameState game_state> void makeMove(Move move);
+  	template<GameState game_state> inline MoveArray getMoves() const; //Calls Chess::genMove and puts it in a nice struct
+    template<GameState game_state> void unmakeMove(Move move);
 
 	inline std::vector<Piece> getMailbox() const {
         return std::vector<Piece>(mailbox, mailbox + 64);
@@ -78,8 +96,9 @@ inline Bitboard Chess::all_bitboards() const {
 	} 
 }
 
-template<Color color>
+template<GameState game_state>
 void Chess::makeMove(Move move) {
+    constexpr Color color = game_state.color;
     History current_history_data = history[depth]; //Copy relevant data from current depth to the queued next depth history
 
 	switch (move.flag()) {
@@ -231,8 +250,10 @@ void Chess::makeMove(Move move) {
 
 }
 
-template<Color color>
+template<GameState game_state>
 void Chess::unmakeMove(Move move) {
+    constexpr Color color = game_state.color;
+
     switch (move.flag()) {
         case QUIET:
             bitboards[mailbox[move.to()]] ^= get_single_bitboard(move.from()) | get_single_bitboard(move.to()); // Update piece position on bitboard
@@ -329,8 +350,10 @@ void Chess::unmakeMove(Move move) {
     //No need to clear the history as it will just get overwritten when needed
 }
 
-template<Color color>
+template<GameState game_state>
 Move* Chess::genMove(Move* legal_moves) const {
+    constexpr Color color = game_state.color;
+
 	Bitboard bb; //Temp bitboard used for whatever
 	Bitboard moves; //Temp bitboard to store moves
     Square pos; //Temp int for storing positions
@@ -539,6 +562,7 @@ Move* Chess::genMove(Move* legal_moves) const {
                         *legal_moves++ = Move(pos, history[depth].en_passant_square - 8, EN_PASSANT); //Only one en passant can be possible per turn
                     }
                 }
+
                 bb &= bb - 1;
             }
 
@@ -698,9 +722,9 @@ Move* Chess::genMove(Move* legal_moves) const {
     return legal_moves;
 }
 
-template<Color color>
+template<GameState game_state>
 inline MoveArray Chess::getMoves() const {
     MoveArray moves;
-    moves.last = this->genMove<color>(moves.arr);
+    moves.last = this->genMove<game_state>(moves.arr);
     return moves;
 }
