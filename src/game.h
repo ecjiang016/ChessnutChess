@@ -434,20 +434,22 @@ Move* Chess::genMove(Move* legal_moves) const {
             switch(mailbox[pos]) {
                 case makePiece(Pawn, ~color):
                     //The checking pawn can be taken by en passant
-                    if (history[depth].en_passant_square == pos) {
-                        constexpr int8_t shift = color == WHITE ? 8 : -8;
-                        bb = (((get_single_bitboard(history[depth].en_passant_square) & ~LEFT_COLUMN) >> 1) | ((get_single_bitboard(history[depth].en_passant_square) & ~RIGHT_COLUMN) << 1))
-                            & get_bitboard(Pawn, color) & ~pinned;
-                        while (bb) {
-                            //If statement for the weird pinned en passant case
-                            if ((sliding_moves(all ^ (bb & -bb) ^ get_single_bitboard(history[depth].en_passant_square), rook_masks_horizontal[king_square], get_single_bitboard(king_square))
-                                & (get_bitboard(Queen, ~color) | get_bitboard(Rook, ~color))) == Bitboard(0)) {
-                                
-                                *legal_moves++ = Move(bitScanForward(bb), history[depth].en_passant_square + shift, EN_PASSANT);
+                    if constexpr (game_state.en_passant) {
+                        if (history[depth].en_passant_square == pos) {
+                            constexpr int8_t shift = color == WHITE ? 8 : -8;
+                            bb = (((get_single_bitboard(history[depth].en_passant_square) & ~LEFT_COLUMN) >> 1) | ((get_single_bitboard(history[depth].en_passant_square) & ~RIGHT_COLUMN) << 1))
+                                & get_bitboard(Pawn, color) & ~pinned;
+                            while (bb) {
+                                //If statement for the weird pinned en passant case
+                                if ((sliding_moves(all ^ (bb & -bb) ^ get_single_bitboard(history[depth].en_passant_square), rook_masks_horizontal[king_square], get_single_bitboard(king_square))
+                                    & (get_bitboard(Queen, ~color) | get_bitboard(Rook, ~color))) == Bitboard(0)) {
+                                    
+                                    *legal_moves++ = Move(bitScanForward(bb), history[depth].en_passant_square + shift, EN_PASSANT);
 
+                                }
+                            
+                                bb &= bb - 1;
                             }
-                        
-                            bb &= bb - 1;
                         }
                     }
                     //No break to continue to knight case
@@ -553,13 +555,15 @@ Move* Chess::genMove(Move* legal_moves) const {
                 add_moves<CAPTURE>(bitScanForward(bb), moves & capture_mask, legal_moves);
 
                 //Handle en passants
-                if constexpr (color == WHITE) {
-                    if ((moves >> 8) & get_single_bitboard(history[depth].en_passant_square)) {
-                        *legal_moves++ = Move(pos, history[depth].en_passant_square + 8, EN_PASSANT); //Only one en passant can be possible per turn
-                    }
-                } else {
-                    if ((moves << 8) & get_single_bitboard(history[depth].en_passant_square)) {
-                        *legal_moves++ = Move(pos, history[depth].en_passant_square - 8, EN_PASSANT); //Only one en passant can be possible per turn
+                if constexpr (game_state.en_passant) {
+                    if constexpr (color == WHITE) {
+                        if ((moves >> 8) & get_single_bitboard(history[depth].en_passant_square)) {
+                            *legal_moves++ = Move(pos, history[depth].en_passant_square + 8, EN_PASSANT); //Only one en passant can be possible per turn
+                        }
+                    } else {
+                        if ((moves << 8) & get_single_bitboard(history[depth].en_passant_square)) {
+                            *legal_moves++ = Move(pos, history[depth].en_passant_square - 8, EN_PASSANT); //Only one en passant can be possible per turn
+                        }
                     }
                 }
 
@@ -672,7 +676,7 @@ Move* Chess::genMove(Move* legal_moves) const {
     }
 
     //Add en passants if applicable
-    if (history[depth].en_passant_square != 0) {
+    if constexpr (game_state.en_passant) {
         constexpr int8_t shift = color == WHITE ? 8 : -8;
         bb = (((get_single_bitboard(history[depth].en_passant_square) & ~LEFT_COLUMN) >> 1) | ((get_single_bitboard(history[depth].en_passant_square) & ~RIGHT_COLUMN) << 1))
             & get_bitboard(Pawn, color) & ~pinned;
