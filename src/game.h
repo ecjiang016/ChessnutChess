@@ -11,16 +11,25 @@ constexpr size_t MAX_GAME_LENGTH = 5949;
 struct GameState {
   public:
     Color color;
-    bool en_passant;
-    constexpr GameState(Color color_, bool en_passant_) : color(color_), en_passant(en_passant_) {}
+    bool en_passant; //En passant is possible
+    bool castle_ws, castle_wl, castle_bs, castle_bl; //Castling is possible
 
-    template<Flag flag>
+    constexpr GameState(Color color_, bool en_passant_, bool castle_ws_, bool castle_wl_, bool castle_bs_, bool castle_bl_)
+        : color(color_), en_passant(en_passant_),
+        castle_ws(castle_ws_), castle_wl(castle_wl_), castle_bs(castle_bs_), castle_bl(castle_bl_) {}
+
+    template<Flag flag, Color C>
     constexpr GameState next() const {
-        switch (flag) {
-            case DOUBLE_PUSH:
-                return GameState(~color, true);
-            default:
-                return GameState(~color, false);
+        if constexpr (flag == DOUBLE_PUSH) {
+            return GameState(~color, true, castle_ws, castle_wl, castle_bs, castle_bl);
+        } else if constexpr (flag == CASTLE_SHORT || flag == CASTLE_LONG) {
+            if (C == WHITE) {
+                return GameState(~color, false, false, false, castle_bs, castle_bl);
+            } else {
+                return GameState(~color, false, castle_ws, castle_wl, false, false);
+            }
+        } else {
+            return GameState(~color, false, castle_ws, castle_wl, castle_bs, castle_bl);
         }
     }
 
