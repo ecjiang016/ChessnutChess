@@ -94,7 +94,7 @@ struct MoveArray {
         return last - arr;
     }
 
-    inline Move &operator[](int index) {
+    inline Move &operator[](size_t index) {
         return arr[index];
     }
 

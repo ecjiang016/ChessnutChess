@@ -63,8 +63,8 @@ cdef extern from "../src/game.h":
 
     cdef cppclass MoveArray:
         MoveArray() except +
-        int size()
-        Move operator[](int)
+        size_t size()
+        Move operator[](size_t)
 
     cdef cppclass Mailbox "std::array<Piece, 64>":
         Mailbox() except+
@@ -116,7 +116,7 @@ cdef class Chess:
     def getAllMoves(self):
         move_list = []
         cdef MoveArray allMoves = self.cobj.getMoves_white() if self.color == WHITE else self.cobj.getMoves_black()
-        cdef int i
+        cdef size_t i
         cdef Move move
 
         for i in range(allMoves.size()):
@@ -130,6 +130,8 @@ cdef class Chess:
         piece_coord = coords_2D_to_1D(piece_x, piece_y)
         cdef MoveArray allMoves = self.cobj.getMoves_white() if self.color == WHITE else self.cobj.getMoves_black()
         cdef Move move
+        cdef size_t i
+
         for i in range(allMoves.size()):
             move = allMoves[i]
             if move.from_() == piece_coord:
@@ -142,6 +144,8 @@ cdef class Chess:
         new_c = coords_2D_to_1D(new_x, new_y)
         cdef MoveArray allMoves = self.cobj.getMoves_white() if self.color == WHITE else self.cobj.getMoves_black()
         cdef Move move
+        cdef size_t i
+
         for i in range(allMoves.size()):
             move = allMoves[i]
             if move.from_() == old_c and move.to() == new_c:
@@ -154,6 +158,8 @@ cdef class Chess:
         new_c = coords_2D_to_1D(new_x, new_y)
         cdef MoveArray allMoves = self.cobj.getMoves_white() if self.color == WHITE else self.cobj.getMoves_black()
         cdef Move move
+        cdef size_t i
+        
         for i in range(allMoves.size()):
             move = allMoves[i]
             if move.from_() == old_c and move.to() == new_c:
