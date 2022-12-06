@@ -66,6 +66,12 @@ cdef extern from "../src/game.h":
         int size()
         Move operator[](int)
 
+    cdef cppclass Mailbox "std::array<Piece, 64>":
+        Mailbox() except+
+        float& operator[](size_t)
+        size_t size()
+        float* data()
+
     cdef cppclass cChess "Chess":
         cChess() except +
         cChess(string fen) except +
@@ -76,7 +82,7 @@ cdef extern from "../src/game.h":
         void makeMove_black "makeMove<BLACK>"(Move move)
         void unmakeMove_white "unmakeMove<WHITE>"(Move move)
         void unmakeMove_black "unmakeMove<BLACK>"(Move move)
-        vector[Piece] getMailbox()
+        Mailbox getMailbox()
         Color csetFen "setFen"(string fen)
 
     void cinitializeTables "Magic::initializeTables"()
@@ -184,7 +190,7 @@ cdef class Chess:
     #@cython.wraparound(False)
     def createBoard(self):
         cdef int [:] board = np.zeros(64, dtype="int32") 
-        cdef vector[Piece] cboard = self.cobj.getMailbox()
+        cdef Mailbox cboard = self.cobj.getMailbox()
 
         for square in range(64):
             if int(cboard[square]) <= 6:
