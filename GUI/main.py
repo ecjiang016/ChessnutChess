@@ -9,8 +9,9 @@ import pygame
 import time
 import numpy as np
 import os
-from chess import Chess
+from chess import Chess, initializeTables
 
+initializeTables()
 
 WINDOW_SIZE = 800
 TILE_SIZE = WINDOW_SIZE // 8

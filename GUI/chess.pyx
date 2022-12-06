@@ -79,8 +79,14 @@ cdef extern from "../src/game.h":
         vector[Piece] getMailbox()
         Color csetFen "setFen"(string fen)
 
+    void cinitializeTables "Magic::initializeTables"()
+    
+
 def coords_2D_to_1D(x, y):
     return (7-y)*8 + x
+
+def initializeTables():
+    cinitializeTables()
 
 cdef class Chess:
     cdef cChess *cobj
